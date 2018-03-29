@@ -1,0 +1,182 @@
+object frmmain: Tfrmmain
+  Left = 352
+  Height = 321
+  Top = 162
+  Width = 306
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'memhacker v0.1 by cal_'
+  ClientHeight = 321
+  ClientWidth = 306
+  OnCreate = FormCreate
+  LCLVersion = '1.8.2.0'
+  object btnrefresh: TButton
+    Left = 221
+    Height = 25
+    Top = 22
+    Width = 75
+    Caption = 'Refresh'
+    OnClick = btnrefreshClick
+    TabOrder = 0
+  end
+  object txtprocess: TComboBox
+    Left = 16
+    Height = 23
+    Top = 24
+    Width = 192
+    ItemHeight = 15
+    TabOrder = 1
+  end
+  object lblpname: TLabel
+    Left = 16
+    Height = 15
+    Top = 4
+    Width = 73
+    Caption = 'Process name'
+    ParentColor = False
+  end
+  object grpmemutils: TGroupBox
+    Left = 16
+    Height = 248
+    Top = 64
+    Width = 280
+    Caption = 'Memory editing'
+    ClientHeight = 228
+    ClientWidth = 276
+    TabOrder = 2
+    object btnwrite: TButton
+      Left = 16
+      Height = 25
+      Top = 192
+      Width = 120
+      Caption = 'Write'
+      OnClick = btnwriteClick
+      TabOrder = 0
+    end
+    object btnread: TButton
+      Left = 144
+      Height = 25
+      Top = 192
+      Width = 120
+      Caption = 'Read'
+      OnClick = btnreadClick
+      TabOrder = 1
+    end
+    object txtaddr: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 24
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtaddr
+      EditLabel.AnchorSideRight.Control = txtaddr
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtaddr
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Address'
+      EditLabel.ParentColor = False
+      TabOrder = 2
+      Text = '$'
+      OnChange = txtaddrChange
+    end
+    object txtvalue: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 80
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtvalue
+      EditLabel.AnchorSideRight.Control = txtvalue
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtvalue
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 62
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Value'
+      EditLabel.ParentColor = False
+      TabOrder = 3
+    end
+    object grpvtype: TGroupBox
+      Left = 168
+      Height = 177
+      Top = 8
+      Width = 104
+      Caption = 'Value type'
+      ClientHeight = 157
+      ClientWidth = 100
+      TabOrder = 4
+      object rbdword: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 10
+        Width = 63
+        Caption = 'DWORD'
+        Checked = True
+        TabOrder = 3
+        TabStop = True
+      end
+      object rbqword: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 40
+        Width = 64
+        Caption = 'QWORD'
+        TabOrder = 0
+      end
+      object rbfloat: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 72
+        Width = 46
+        Caption = 'Float'
+        TabOrder = 1
+      end
+      object rbstring: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 104
+        Width = 51
+        Caption = 'String'
+        TabOrder = 2
+      end
+      object txtlength: TEdit
+        Left = 64
+        Height = 23
+        Top = 128
+        Width = 31
+        NumbersOnly = True
+        OnChange = txtlengthChange
+        TabOrder = 4
+        Text = '0'
+      end
+      object lbllength: TLabel
+        Left = 16
+        Height = 15
+        Top = 133
+        Width = 37
+        Caption = 'Length'
+        ParentColor = False
+      end
+    end
+    object txtresp: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 138
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtresp
+      EditLabel.AnchorSideRight.Control = txtresp
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtresp
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 120
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Response'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 5
+    end
+  end
+end
