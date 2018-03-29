@@ -1,0 +1,57 @@
+object Form1: TForm1
+  Left = 257
+  Height = 240
+  Top = 250
+  Width = 320
+  Caption = 'Target'
+  ClientHeight = 240
+  ClientWidth = 320
+  OnCreate = FormCreate
+  LCLVersion = '1.8.2.0'
+  object btndword: TButton
+    Left = 24
+    Height = 25
+    Top = 24
+    Width = 75
+    Caption = 'DWORD'
+    OnClick = btndwordClick
+    TabOrder = 0
+  end
+  object Memo1: TMemo
+    Left = 24
+    Height = 90
+    Top = 88
+    Width = 163
+    Lines.Strings = (
+      'Memo1'
+    )
+    TabOrder = 1
+  end
+  object btnstring: TButton
+    Left = 112
+    Height = 25
+    Top = 24
+    Width = 75
+    Caption = 'string'
+    OnClick = btnstringClick
+    TabOrder = 2
+  end
+  object btnqword: TButton
+    Left = 24
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'QWORD'
+    OnClick = btnqwordClick
+    TabOrder = 3
+  end
+  object btnsingle: TButton
+    Left = 112
+    Height = 25
+    Top = 56
+    Width = 75
+    Caption = 'Single'
+    OnClick = btnsingleClick
+    TabOrder = 4
+  end
+end
