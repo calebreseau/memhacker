@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <Compiler Value="C:\lazarus64\fpc\3.0.4\bin\x86_64-win64\fpc.exe" Date="1280925991"/>
-  <Params Value=" -MObjFPC -Scghi -CX -O3 -XX -WG -l -vewnhibq -Fic:\Users\arthu\Dropbox\code\lazarus\windows\memhacker\lib\x86_64-win64 -FuC:\lazarus64\lcl\units\x86_64-win64\win32 -FuC:\lazarus64\lcl\units\x86_64-win64 -FuC:\lazarus64\components\lazutils\lib\x86_64-win64 -FuC:\lazarus64\packager\units\x86_64-win64 -Fuc:\Users\arthu\Dropbox\code\lazarus\windows\memhacker\ -FUc:\Users\arthu\Dropbox\code\lazarus\windows\memhacker\lib\x86_64-win64\ -dLCL -dLCLwin32 memhacker.lpr"/>
-</CONFIG>
