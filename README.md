@@ -6,4 +6,6 @@ Before trying to open the target process, it tries to find an already opened han
 
 Use it with caution as it is still in development and as you're dealing with a system process: if the DLL crashes, Windows will crash too.
 
+The target folder is just a target exe you can use to test injection on.
+
 Have fun!
