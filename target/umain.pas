@@ -6,13 +6,13 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,winmitigations
-  ,windows;
+  ,windows,winmiscutils in '..\winmiscutils.pas';
 
 type
 
   { TForm1 }
 
-  TForm1 = class(TForm)
+  TForm1 = class(TForm) 
     btndword: TButton;
     btnstring: TButton;
     btnqword: TButton;
@@ -84,7 +84,8 @@ var
 begin
   randomize;
   dwpolicy:=0;
-  setprocessmitigationpolicy(processaslrpolicy,@dwpolicy,4)
+  setprocessmitigationpolicy(processaslrpolicy,@dwpolicy,4);
+  showmessage(inttohex(openprocess(process_all_access,false,getpidbyprocessname('notepad.exe')),4));
 end;
 
 end.

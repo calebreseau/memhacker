@@ -1,12 +1,12 @@
 object frmmain: Tfrmmain
   Left = 352
-  Height = 321
+  Height = 350
   Top = 162
   Width = 306
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'memhacker v0.1 by cal_'
-  ClientHeight = 321
+  ClientHeight = 350
   ClientWidth = 306
   OnCreate = FormCreate
   LCLVersion = '1.8.2.0'
@@ -37,11 +37,11 @@ object frmmain: Tfrmmain
   end
   object grpmemutils: TGroupBox
     Left = 16
-    Height = 248
+    Height = 280
     Top = 64
     Width = 280
     Caption = 'Memory editing'
-    ClientHeight = 228
+    ClientHeight = 260
     ClientWidth = 276
     TabOrder = 2
     object btnwrite: TButton
@@ -177,6 +177,15 @@ object frmmain: Tfrmmain
       EditLabel.ParentColor = False
       ReadOnly = True
       TabOrder = 5
+    end
+    object btnhandle: TButton
+      Left = 16
+      Height = 25
+      Top = 224
+      Width = 248
+      Caption = 'Get LSASS handle'
+      OnClick = btnhandleClick
+      TabOrder = 6
     end
   end
 end

@@ -4,7 +4,7 @@ unit utalkiewalkie;
 
 interface
 
-uses
+uses 
   Classes, SysUtils,windows,winmiscutils;
 
 type
@@ -15,8 +15,8 @@ type
     addr:qword;
     valuetype:dword;
     valuelength:ptruint;
-    value:string[16];
-    response:string[16];
+    value:string[64];
+    response:string[64];
   end;
   pdata=^tdata;
 

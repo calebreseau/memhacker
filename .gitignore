@@ -70,3 +70,4 @@ lib/
 victim.exe
 target.exe
 winmitigations.pas
+*.zip

@@ -1,7 +1,7 @@
 library memhackerdll;
 
 {$mode objfpc}{$H+}
-
+ 
 
 uses
   Classes,utalkiewalkie,wininjection,windows,sysutils,winmiscutils,ntdll;
@@ -16,18 +16,13 @@ var
   target:thandle;
   resp:string;
 begin
-  target:=findhandlefrompid(pid);
+  target:=getsysprocesshandle(pid);
   if target<1 then target:=openprocess(process_all_access,false,pid);
   if target<1 then
   begin
      result:='error opening process: '+inttostr(getlasterror);
      exit;
   end;
-  {sysmsgbox('pid: '+inttostr(pid));
-  sysmsgbox('addr: '+inttohex(qword(pointer(addr)),8));
-  sysmsgbox('valuetype: '+inttostr(valuetype));         << debugging
-  sysmsgbox('vlength: '+inttostr(qword(vlength)));
-  sysmsgbox('handle: '+inttostr(target)); }
   if valuetype=vt_dword then
   begin
      if readprocessmemory(target,pointer(addr),@bufdword,vlength,bytesread) then
@@ -66,14 +61,8 @@ var
   target:thandle;
   resp:string;
 begin
-  target:=findhandlefrompid(pid);
+  target:=getsysprocesshandle(pid);
   if target<1 then target:=openprocess(process_all_access,false,pid);
- { sysmsgbox('pid: '+inttostr(pid));
-  sysmsgbox('addr: '+inttohex(qword(pointer(addr)),8));          << debugging
-  sysmsgbox('valuetype: '+inttostr(valuetype));
-  sysmsgbox('valuetype: '+value);
-  sysmsgbox('vlength: '+inttostr(qword(vlength)));
-  sysmsgbox('handle: '+inttostr(target));       }
   if valuetype=vt_dword then
   begin
      bufdword:=strtoint(value);
@@ -117,10 +106,14 @@ end;
 
 procedure _main;
 begin
+  try
+    deletefile('memhackerdll_log.txt');
+  finally
+  end;
   if not stillalive then exit;
-  //sysmsgbox('start'); debug
+  //sysmsgbox('start'); //debug
   if not tw_init_cl then exit;
-  //sysmsgbox('ok');   debug
+  //sysmsgbox('init ok');   //debug
   while 1=1 do
   begin
     sleep(10);
@@ -128,23 +121,29 @@ begin
     if tdata(utalkiewalkie.data^).cmd<>0 then
     begin
        //sysmsgbox('cmd '+inttostr(tdata(utalkiewalkie.data^).cmd)); debug
-       if tdata(utalkiewalkie.data^).cmd=2 then tdata(utalkiewalkie.data^).response:=readmem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).valuelength);
-       if tdata(utalkiewalkie.data^).cmd=1 then tdata(utalkiewalkie.data^).response:=writemem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).value,tdata(utalkiewalkie.data^).valuelength);
+       if tdata(utalkiewalkie.data^).cmd=2 then
+            tdata(utalkiewalkie.data^).response:=readmem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).valuelength);
+       //
+       if tdata(utalkiewalkie.data^).cmd=1 then
+            tdata(utalkiewalkie.data^).response:=writemem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).value,tdata(utalkiewalkie.data^).valuelength);
+       //
+       if tdata(utalkiewalkie.data^).cmd=3 then
+            tdata(utalkiewalkie.data^).response:=inttohex(getsysprocesshandle(tdata(utalkiewalkie.data^).pid),4);
        //sysmsgbox(resp);   debug
        tdata(utalkiewalkie.data^).cmd:=0;
     end;
   end;
+
 end;
 
 procedure DllMain(dllparam: ptrint);register;
 begin
   case dllparam of
-  DLL_PROCESS_ATTACH:outputdebugstring('DLL_PROCESS_ATTACH');
-  DLL_PROCESS_DETACH:_main;   //for some reason, even on attach it calls detach so i gotta use that even its unclean and will call the dll on real detach too
-  DLL_THREAD_ATTACH:outputdebugstring('DLL_THREAD_ATTACH');
-  DLL_THREAD_DETACH:outputdebugstring('DLL_THREAD_DETACH');
+    DLL_PROCESS_ATTACH:outputdebugstring('DLL_PROCESS_ATTACH');
+    DLL_PROCESS_DETACH:_main;   //for some reason, even on attach it calls detach so i gotta use that even its unclean and will call the dll on real detach too
+    DLL_THREAD_ATTACH:outputdebugstring('DLL_THREAD_ATTACH');
+    DLL_THREAD_DETACH:outputdebugstring('DLL_THREAD_DETACH');
   end;
-
 end;
 
 exports _main;
@@ -152,5 +151,6 @@ exports _main;
 
 begin
   dll_thread_attach_hook := @dllmain;
+  //disablethreadlibrarycalls(hinstance);
 end.
 

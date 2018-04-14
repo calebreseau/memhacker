@@ -5,12 +5,14 @@ unit ntdll;
 interface
 
 uses
-  Classes, SysUtils,windows,jwawintype,jwapsapi;
+  Classes, SysUtils,windows,winmiscutils,jwawintype,jwapsapi,strutils;
 
 type
+
+   OBJECT_INFORMATION_CLASS = (ObjectBasicInformation,ObjectNameInformation,ObjectTypeInformation,ObjectAllTypesInformation,ObjectHandleInformation );
   SYSTEM_INFORMATION_CLASS = (
     SystemBasicInformation,
-    SystemProcessorInformation,
+    SystemProcessorInformation, 
     SystemPerformanceInformation,
     SystemTimeOfDayInformation,
     SystemNotImplemented1,
@@ -71,34 +73,10 @@ type
     end;
 
     pclient_id=^client_id;
-
-      TFNAPCProc = TFarProc;
-  SYSTEM_HANDLE=packed record
-     uIdProcess:ULONG;
-     ObjectType:byte;
-     Flags     :byte;
-     Handle    :ushort;
-     pObject   :Pointer;
-     GrantedAccess:ACCESS_MASK;
-  end;
-  PSYSTEM_HANDLE      = ^SYSTEM_HANDLE;
-  SYSTEM_HANDLE_ARRAY = Array[0..0] of SYSTEM_HANDLE;
-  PSYSTEM_HANDLE_ARRAY= ^SYSTEM_HANDLE_ARRAY;
-  SYSTEM_HANDLE_INFORMATION=packed record
-    uCount:ULONG;
-    Handles:SYSTEM_HANDLE_ARRAY;
-  end;
-  PSYSTEM_HANDLE_INFORMATION=^SYSTEM_HANDLE_INFORMATION;
-  ntstatus=integer;
-
- UNICODE_STRING=packed record
-    Length       :Word;
-    MaximumLength:Word;
-    Buffer       :PWideChar;
- end;
- OBJECT_INFORMATION_CLASS = (ObjectBasicInformation,ObjectNameInformation,ObjectTypeInformation,ObjectAllTypesInformation,ObjectHandleInformation );
- OBJECT_NAME_INFORMATION=UNICODE_STRING;
+    OBJECT_NAME_INFORMATION=UNICODE_STRING;
  POBJECT_NAME_INFORMATION=^OBJECT_NAME_INFORMATION;
+
+
 
 const
     STATUS_SUCCESS               = ntstatus($00000000);
@@ -107,6 +85,7 @@ const
     DefaulBUFFERSIZE              = $100000;
 
   function ntquerysysteminformation(systeminformationclass:system_information_class;systeminformation:pvoid;systeminformationlength:ulong;returnlength:pulong): ntstatus; stdcall;external 'ntdll.dll' name 'NtQuerySystemInformation';
+  function ntqueryobject(ObjectHandle:cardinal; ObjectInformationClass:OBJECT_INFORMATION_CLASS; ObjectInformation:pointer; Length:ULONG;ResultLength:PDWORD):ntstatus; stdcall;external 'ntdll.dll' name 'NtQueryObject';
   function ntsuspendprocess(ProcessHandle: THANDLE):boolean; stdcall;external 'ntdll.dll' name 'NtSuspendProcess';
   function NtResumeProcess(ProcessHandle: THANDLE):boolean; stdcall;external 'ntdll.dll' name 'NtResumeProcess';
   function rtlcreateuserthread(ProcessHandle: THANDLE;
@@ -118,22 +97,21 @@ const
      StartParameter: pointer;
      ThreadHandle: PHANDLE;
      ClientID: PCLIENT_ID):ntstatus; stdcall;external 'ntdll.dll' name 'RtlCreateUserThread';
-  function NtQuerySystemInformation(SystemInformationClass:DWORD; SystemInformation:pointer; SystemInformationLength:DWORD;  ReturnLength:PDWORD):THandle; stdcall;external 'ntdll.dll' name 'NtQuerySystemInformation';
-  function NtQueryObject(ObjectHandle:cardinal; ObjectInformationClass:OBJECT_INFORMATION_CLASS; ObjectInformation:pointer; Length:ULONG;ResultLength:PDWORD):THandle;stdcall;external 'ntdll.dll' name 'NtQueryObject';
-  function findhandlefrompid(pid:dword):thandle;
+  function getsysprocesshandle(pid:dword):thandle;
+  function GetProcessId(Process: THandle): DWORD; stdcall; external 'kernel32.dll' name 'GetProcessId';
 
 implementation
 
-function GetObjectInfo(hObject:cardinal; objInfoClass:OBJECT_INFORMATION_CLASS):LPWSTR;
+function GetObjectInfo(hObject:cardinal; objInfoClass:OBJECT_INFORMATION_CLASS):string;
 var
  pObjectInfo:POBJECT_NAME_INFORMATION;
  HDummy     :THandle;
  dwSize     :DWORD;
+ _result:LPWSTR;
 begin
-  Result:=nil;
   dwSize      := sizeof(OBJECT_NAME_INFORMATION);
   pObjectInfo := AllocMem(dwSize);
-  HDummy      := NTQueryObject(hObject, objInfoClass, pObjectInfo,dwSize, @dwSize);
+  HDummy      := NTQueryObject(hObject, objInfoClass, pObjectInfo,dwsize, @dwSize);
 
   if((HDummy = STATUS_BUFFER_OVERFLOW) or (HDummy = STATUS_INFO_LENGTH_MISMATCH)) then
     begin
@@ -144,70 +122,70 @@ begin
 
   if((HDummy >= STATUS_SUCCESS) and (pObjectInfo^.Buffer <> nil)) then
   begin
-   Result := AllocMem(pObjectInfo^.Length + sizeof(WCHAR));
-   CopyMemory(result, pObjectInfo^.Buffer, pObjectInfo^.Length);
+   _Result := AllocMem(pObjectInfo^.Length + sizeof(WCHAR));
+   CopyMemory(_result, pObjectInfo^.Buffer, pObjectInfo^.Length);
+   result:=string(_result);
+   if _result<>nil then freemem(_result);
   end;
-  FreeMem(pObjectInfo);
+  if pobjectinfo<>nil then FreeMem(pObjectInfo);
 end;
 
-function findhandlefrompid(pid:dword):thandle;      //function from delphibasics
+
+function getsysprocesshandle(pid:dword):thandle;
 var
- sDummy      : string;
- hProcess    : THandle;
- hObject     : THandle;
- ResultLength: DWORD;
- aBufferSize : DWORD;
- aIndex      : Integer;
- pHandleInfo : PSYSTEM_HANDLE_INFORMATION;
- HDummy      : THandle;
- lpwsName    : PWideChar;
- lpwsType    : PWideChar;
- lpszProcess : PAnsiChar;
+  handleinfosize:ulong;
+  handleinfo:psystem_handle_information;
+  status:ntstatus;
+  i:qword;
+  errcount:integer;
+  _handle:thandle;
+  _pid:dword;
+  _process:SYSTEM_HANDLE;
+  strtype:string;
+  currpid:dword;
 begin
-    AbufferSize      := DefaulBUFFERSIZE;
-  pHandleInfo      := AllocMem(AbufferSize);
-  HDummy           := NTQuerySystemInformation(SystemHandleInformation, pHandleInfo,AbufferSize, @ResultLength);  //Get the list of handles
-
-  if(HDummy = STATUS_SUCCESS) then  //If no error continue
-    begin
-
-      for aIndex:=0 to pHandleInfo^.uCount-1 do   //iterate the list
-      begin
-    hProcess := OpenProcess(PROCESS_DUP_HANDLE or PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, FALSE, pHandleInfo^.Handles[aIndex].uIdProcess);  //open the process to get aditional info
-    if(hProcess <> INVALID_HANDLE_VALUE) then  //Check valid handle
-        begin
-     hObject := 0;
-     if DuplicateHandle(hProcess, pHandleInfo^.Handles[aIndex].Handle,GetCurrentProcess(), @hObject, STANDARD_RIGHTS_REQUIRED,FALSE, 0) then  //Get  a copy of the original handle
-          begin
-      lpwsName := GetObjectInfo(hObject, ObjectNameInformation); //Get the filename linked to the handle
-      if (lpwsName <> nil)  then
-            begin
-       lpwsType    := GetObjectInfo(hObject, ObjectTypeInformation);
-       lpszProcess := AllocMem(MAX_PATH);
-
-       if GetModuleFileNameEx(hProcess, 0,lpszProcess, MAX_PATH)<>0 then  //get the name of the process
-               sDummy:=ExtractFileName(lpszProcess)
-              else
-               sDummy:= 'System Process';
-
-              if pHandleInfo^.Handles[aIndex].uIdProcess=pid then
-              begin
-                result:=pHandleInfo^.Handles[aIndex].Handle;
-                break;
-              FreeMem(lpwsName);
-              FreeMem(lpwsType);
-              FreeMem(lpszProcess);
-      end;
-      CloseHandle(hObject);
-     end;
-     CloseHandle(hProcess);
-    end;
+   currpid:=getcurrentprocessid;
+   result:=0;
+   handleinfosize:=DefaulBUFFERSIZE;
+   handleinfo:=virtualalloc(nil,size_t(handleinfosize),mem_commit,page_execute_readwrite);
+   status:=ntquerysysteminformation(systemhandleinformation,handleinfo,handleinfosize,nil);
+   while status=STATUS_INFO_LENGTH_MISMATCH do
+   begin
+     handleinfosize*=2;
+     if handleinfo<>nil then virtualfree(handleinfo,size_t(handleinfosize),mem_release);
+     setlasterror(0);
+     handleinfo:=virtualalloc(nil,size_t(handleinfosize),mem_commit,page_execute_readwrite);
+     status:=ntquerysysteminformation(systemhandleinformation,handleinfo,handleinfosize,nil);
    end;
-  end;
-  FreeMem(pHandleInfo);
-
-
-  end;
+   if not nt_success(status) then
+   begin
+       sysmsgbox('error getting handle: '+inttohex(status,8));
+       exit;
+   end;
+   errcount:=0;
+   for i:=0 to handleinfo^.uCount-1 do
+   begin
+     try
+       _process:=handleinfo^.handles[i];
+       _handle:=_process.handle;
+       if _handle>0 then strtype:=GetObjectInfo(_handle, ObjectTypeInformation);
+       if lowercase(strtype)='process' then
+       begin
+         _pid:=getprocessid(_handle);
+         if _process.uidprocess=currpid then
+         begin
+           if _pid=pid then
+           begin
+             result:=_handle;
+             break;
+           end;
+         end;
+       end;
+     except
+         errcount+=1;
+     end;
+   end;
+   if handleinfo<>nil then virtualfree(handleinfo,size_t(handleinfosize),mem_release);
 end;
 
 end.

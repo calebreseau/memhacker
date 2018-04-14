@@ -10,7 +10,7 @@ uses
   Forms, umain, winmitigations
   { you can add units after this };
 
-{$R *.res}
+{$R *.res} 
 
 begin
   RequireDerivedFormResource:=True;

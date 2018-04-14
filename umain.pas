@@ -13,7 +13,7 @@ type
   { Tfrmmain }
 
 
-  thrui=class(tthread)
+  thrui=class(tthread) 
     procedure execute;override;
   end;
 
@@ -21,6 +21,7 @@ type
     btnwrite: TButton;
     btnread: TButton;
     btnrefresh: TButton;
+    btnhandle: TButton;
     lbllength: TLabel;
     txtlength: TEdit;
     grpvtype: TGroupBox;
@@ -34,6 +35,7 @@ type
     txtaddr: TLabeledEdit;
     lblpname: TLabel;
     txtprocess: TComboBox;
+    procedure btnhandleClick(Sender: TObject);
     procedure btnreadClick(Sender: TObject);
     procedure btnrefreshClick(Sender: TObject);
     procedure btnwriteClick(Sender: TObject);
@@ -57,28 +59,30 @@ implementation
 
 procedure init_inject;
 var
-     lsasshandle:thandle;
-     lsasspid:integer;
+     targetname:string;
+     targethandle:thandle;
+     targetpid:integer;
      th:thandle;
      ch:client_id;
      stat:dword;
 begin
+     if paramcount>0 then targetname:=paramstr(1) else targetname:='lsass.exe';
      setprivilege('sedebugprivilege',true);  //get debug privileges so we can inject into lsass
-     lsasspid:=getpidbyprocessname('lsass.exe');
-     lsasshandle:=openprocess(process_all_access,false,lsasspid);
-     if lsasshandle<1 then
+     targetpid:=getpidbyprocessname(targetname);
+     targethandle:=openprocess(process_all_access,false,targetpid);
+     if targethandle<1 then
      begin
-          showmessage('Error opening LSASS: '+inttostr(getlasterror));
+          showmessage('Error opening '+targetname+': '+inttostr(getlasterror));
           halt;
      end;
-     stat:=injectsys(lsasshandle,false,th,ch,getcurrentdir+'\memhacker.dll'+chr(0));
+     stat:=injectsys(targethandle,false,th,ch,getcurrentdir+'\memhacker.dll'+chr(0));
      if stat<>0 then
      begin
           showmessage('Error injecting dll: '+inttostr(stat));
-          closehandle(lsasshandle);
+          closehandle(targethandle);
           halt;
      end;
-     closehandle(lsasshandle);
+     closehandle(targethandle);
 end;
 
 
@@ -197,6 +201,15 @@ begin
   end;
   adata.addr:=strtoint64(txtaddr.text);
   adata.cmd:=2;
+  adata.pid:=getpidbyprocessname(txtprocess.text);
+  writedata(adata);
+end;
+
+procedure Tfrmmain.btnhandleClick(Sender: TObject);
+var
+  adata:tdata;
+begin
+  adata.cmd:=3;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   writedata(adata);
 end;

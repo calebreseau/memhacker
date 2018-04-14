@@ -5,9 +5,29 @@ unit winmiscutils;
 interface
 
 uses
-  Classes, SysUtils,windows,jwatlhelp32,jwawintype,ntdll;
+  Classes, SysUtils,windows,jwatlhelp32,jwawintype; 
 
-
+type
+  TFNAPCProc = TFarProc;
+  SYSTEM_HANDLE= record
+     uIdProcess:dword;
+     //creatorbacktraceindex:ushort;
+     ObjectType:byte;
+     Flags     :byte;
+     Handle    :ushort;
+     pObject   :Pointer;
+     GrantedAccess:ACCESS_MASK;
+  end;
+  PSYSTEM_HANDLE      = ^SYSTEM_HANDLE;
+  SYSTEM_HANDLE_ARRAY = Array[0..0] of SYSTEM_HANDLE;
+  PSYSTEM_HANDLE_ARRAY= ^SYSTEM_HANDLE_ARRAY;
+  SYSTEM_HANDLE_INFORMATION=packed record
+    uCount:qword;
+    //dummy:dword;
+    Handles:SYSTEM_HANDLE_ARRAY;
+  end;
+  PSYSTEM_HANDLE_INFORMATION=^SYSTEM_HANDLE_INFORMATION;
+  ntstatus=integer;
 
   procedure enumprocesses(output:tstringlist);
   function SetPrivilege(privilegeName: string; enable: boolean): boolean;
@@ -22,13 +42,18 @@ uses
   TitleLength: DWORD; pMessage: LPSTR; MessageLength: DWORD; Style: DWORD;
   Timeout: DWORD; var pResponse: DWORD; bWait: BOOL): BOOL; stdcall; external 'Wtsapi32.dll' name 'WTSSendMessageA';
   function sysmsgbox(text:string):longword;
-  procedure unloaddll(dll:pchar);
+  function logtofile(text,path:string):dword;
 
 implementation
 
-procedure unloaddll(dll:pchar);
+function logtofile(text,path:string):dword;
+var
+  str:tstringlist;
 begin
-    freelibrary(getmodulehandle(dll));
+  str:=tstringlist.create;
+  str.Add(text);
+  str.SaveToFile(path);
+  str.Free;
 end;
 
 function sysmsgbox(text:string):longword;
