@@ -12,7 +12,7 @@ type
 
   { TForm1 }
 
-  TForm1 = class(TForm) 
+  TForm1 = class(TForm)  
     btndword: TButton;
     btnstring: TButton;
     btnqword: TButton;

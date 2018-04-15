@@ -3,7 +3,7 @@ unit wininjection;
 {$mode objfpc}{$H+}
 
 interface
-
+ 
 uses
   Classes, SysUtils,windows,dialogs,winmiscutils,ntdll; 
 
@@ -162,6 +162,7 @@ begin
         if last=false then outputdebugstring(pchar('error wpm'));
 	status:=rtlcreateuserthread(ahandle,nil,susp,0,0,0,loadlibrarypointer,alloc,@th,@ch);
         result:=status;
+        virtualfreeex(ahandle,alloc,size,mem_release);
 end;
 
 

@@ -4,7 +4,7 @@ unit umain;
 
 interface
 
-uses
+uses 
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows;
 
@@ -17,12 +17,20 @@ type
     procedure execute;override;
   end;
 
+  thrlog=class(tthread)
+    procedure execute;override;
+  end;
+
   Tfrmmain = class(TForm)
+    btnsavelog: TButton;
     btnwrite: TButton;
     btnread: TButton;
     btnrefresh: TButton;
     btnhandle: TButton;
+    btnlog: TButton;
+    grplog: TGroupBox;
     lbllength: TLabel;
+    mmlog: TMemo;
     txtlength: TEdit;
     grpvtype: TGroupBox;
     grpmemutils: TGroupBox;
@@ -38,8 +46,11 @@ type
     procedure btnhandleClick(Sender: TObject);
     procedure btnreadClick(Sender: TObject);
     procedure btnrefreshClick(Sender: TObject);
+    procedure btnsavelogClick(Sender: TObject);
     procedure btnwriteClick(Sender: TObject);
+    procedure btnlogClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure txtaddrChange(Sender: TObject);
     procedure txtlengthChange(Sender: TObject);
   private
@@ -89,8 +100,10 @@ end;
 procedure init_main;
 begin        
     tw_init_srv;
+    tw_init_srv_log;
     init_inject;
     with thrui.create(false) do freeonterminate:=true;
+    with thrlog.create(false) do freeonterminate:=true;
 end;
 
 procedure thrui.execute;
@@ -104,7 +117,31 @@ begin
     except
         showmessage('Error reading response: '+inttostr(getlasterror));
     end;
+  end;
+end;
 
+procedure thrlog.execute;
+var
+     lastindex:integer;
+     i:integer;
+begin
+  lastindex:=0;
+  while true do
+  begin
+    sleep(100);
+    try
+      with tlog(datalog^) do
+      begin
+        if index<>lastindex then
+        begin
+          frmmain.mmlog.clear;
+          for i:=0 to index do frmmain.mmlog.Lines.add(strings[i]);
+          lastindex:=index;
+        end;
+      end;
+    except
+      showmessage('Error reading log: '+inttostr(getlasterror));
+    end;
   end;
 end;
 
@@ -117,8 +154,14 @@ begin
        showmessage('Error: memhacker.dll not found');
        halt;
      end;
-
 end;
+
+procedure Tfrmmain.FormDestroy(Sender: TObject);
+begin
+  tw_exit;
+  tw_exit_log;
+end;
+
 
 procedure Tfrmmain.txtaddrChange(Sender: TObject);
 begin
@@ -162,6 +205,20 @@ begin
   writedata(adata);
 end;
 
+procedure Tfrmmain.btnlogClick(Sender: TObject);
+begin
+    if frmmain.width=652 then
+    begin
+      frmmain.width:=311;
+      btnlog.caption:='Show log';
+    end
+    else
+    begin
+      frmmain.width:=652;
+      btnlog.caption:='Hide log';
+    end;
+end;
+
 procedure Tfrmmain.btnrefreshClick(Sender: TObject);
 var
   processes:tstringlist;
@@ -173,6 +230,20 @@ begin
   for i:=0 to processes.Count-1 do txtprocess.Items.Add(processes[i]);
   processes.Free;
   if txtprocess.items.Count>0 then txtprocess.ItemIndex:=0;
+end;
+
+procedure Tfrmmain.btnsavelogClick(Sender: TObject);
+var
+  fg:tsavedialog;
+begin
+  fg:=tsavedialog.create(self);
+  fg.DefaultExt:='.log';
+  fg.InitialDir:=sysutils.getcurrentdir;
+  fg.FileName:='memhacker.log';
+  if fg.execute=true then
+  begin
+    mmlog.Lines.SaveToFile(fg.filename);
+  end;
 end;
 
 procedure Tfrmmain.btnreadClick(Sender: TObject);

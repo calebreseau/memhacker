@@ -1,14 +1,15 @@
 object frmmain: Tfrmmain
-  Left = 352
-  Height = 350
-  Top = 162
-  Width = 306
+  Left = 340
+  Height = 402
+  Top = 116
+  Width = 313
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.1 by cal_'
-  ClientHeight = 350
-  ClientWidth = 306
+  Caption = 'memhacker v0.2 by cal_'
+  ClientHeight = 402
+  ClientWidth = 313 
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   LCLVersion = '1.8.2.0'
   object btnrefresh: TButton
     Left = 221
@@ -186,6 +187,42 @@ object frmmain: Tfrmmain
       Caption = 'Get LSASS handle'
       OnClick = btnhandleClick
       TabOrder = 6
+    end
+  end
+  object btnlog: TButton
+    Left = 16
+    Height = 41
+    Top = 351
+    Width = 280
+    Caption = 'Show log'
+    OnClick = btnlogClick
+    TabOrder = 3
+  end
+  object grplog: TGroupBox
+    Left = 312
+    Height = 396
+    Top = 4
+    Width = 329
+    Caption = 'DLL Log'
+    ClientHeight = 376
+    ClientWidth = 325
+    TabOrder = 4
+    object mmlog: TMemo
+      Left = 8
+      Height = 312
+      Top = 8
+      Width = 304
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+    end
+    object btnsavelog: TButton
+      Left = 8
+      Height = 43
+      Top = 328
+      Width = 304
+      Caption = 'Save log'
+      OnClick = btnsavelogClick
+      TabOrder = 1
     end
   end
 end
