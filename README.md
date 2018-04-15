@@ -6,6 +6,7 @@ Before trying to open the target process, it tries to find an already opened han
 
 Use it with caution as it is still in development and as you're dealing with a system process: if the DLL crashes, Windows will crash too.
 
+You can inject in whatever process you want tho: just put the process name you want as a launch option, and it will inject in it instead of LSASS. This doesn't mean it will work for any process, for example CSRSS.
 The target folder is just a target exe you can use to test injection on.
 
 Have fun!
