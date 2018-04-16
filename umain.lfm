@@ -1,13 +1,13 @@
 object frmmain: Tfrmmain
-  Left = 340
-  Height = 402
-  Top = 116
-  Width = 313
+  Left = 295
+  Height = 673
+  Top = 12
+  Width = 654
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'memhacker v0.2 by cal_'
-  ClientHeight = 402
-  ClientWidth = 313 
+  ClientHeight = 673
+  ClientWidth = 654
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   LCLVersion = '1.8.2.0'
@@ -26,6 +26,7 @@ object frmmain: Tfrmmain
     Top = 24
     Width = 192
     ItemHeight = 15
+    OnChange = txtprocessChange
     TabOrder = 1
   end
   object lblpname: TLabel
@@ -190,39 +191,192 @@ object frmmain: Tfrmmain
     end
   end
   object btnlog: TButton
-    Left = 16
+    Left = 680
     Height = 41
-    Top = 351
+    Top = 520
     Width = 280
     Caption = 'Show log'
     OnClick = btnlogClick
     TabOrder = 3
   end
   object grplog: TGroupBox
-    Left = 312
-    Height = 396
-    Top = 4
-    Width = 329
+    Left = 16
+    Height = 304
+    Top = 360
+    Width = 617
     Caption = 'DLL Log'
-    ClientHeight = 376
-    ClientWidth = 325
+    ClientHeight = 284
+    ClientWidth = 613
     TabOrder = 4
     object mmlog: TMemo
       Left = 8
-      Height = 312
+      Height = 216
       Top = 8
-      Width = 304
+      Width = 592
       ScrollBars = ssAutoBoth
       TabOrder = 0
     end
     object btnsavelog: TButton
       Left = 8
       Height = 43
-      Top = 328
-      Width = 304
+      Top = 232
+      Width = 592
       Caption = 'Save log'
       OnClick = btnsavelogClick
       TabOrder = 1
+    end
+  end
+  object grpsearch: TGroupBox
+    Left = 304
+    Height = 340
+    Top = 4
+    Width = 329
+    Caption = 'Search memory'
+    ClientHeight = 320
+    ClientWidth = 325
+    TabOrder = 5
+    object btnsearch: TButton
+      Left = 8
+      Height = 25
+      Top = 284
+      Width = 200
+      Caption = 'Search'
+      OnClick = btnsearchClick
+      TabOrder = 0
+    end
+    object grpsvtype: TGroupBox
+      Left = 216
+      Height = 128
+      Top = 8
+      Width = 96
+      Caption = 'Value type'
+      ClientHeight = 108
+      ClientWidth = 92
+      TabOrder = 1
+      object rbsdword: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 0
+        Width = 63
+        Caption = 'DWORD'
+        Checked = True
+        TabOrder = 3
+        TabStop = True
+      end
+      object rbsqword: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 20
+        Width = 64
+        Caption = 'QWORD'
+        TabOrder = 0
+      end
+      object rbsfloat: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 40
+        Width = 46
+        Caption = 'Float'
+        TabOrder = 1
+      end
+      object rbsstring: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 60
+        Width = 51
+        Caption = 'String'
+        TabOrder = 2
+      end
+      object txtslength: TEdit
+        Left = 56
+        Height = 23
+        Top = 80
+        Width = 31
+        NumbersOnly = True
+        OnChange = txtlengthChange
+        TabOrder = 4
+        Text = '0'
+      end
+      object lblslength: TLabel
+        Left = 8
+        Height = 15
+        Top = 80
+        Width = 37
+        Caption = 'Length'
+        ParentColor = False
+      end
+    end
+    object txtsstart: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 206
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsstart
+      EditLabel.AnchorSideRight.Control = txtsstart
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsstart
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 188
+      EditLabel.Width = 96
+      EditLabel.Caption = 'Start address'
+      EditLabel.ParentColor = False
+      TabOrder = 2
+      Text = '$0'
+    end
+    object txtsend: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 252
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsend
+      EditLabel.AnchorSideRight.Control = txtsend
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsend
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 234
+      EditLabel.Width = 96
+      EditLabel.Caption = 'End address'
+      EditLabel.ParentColor = False
+      TabOrder = 3
+      Text = '$0'
+    end
+    object lstaddrs: TListBox
+      Left = 8
+      Height = 267
+      Top = 8
+      Width = 200
+      ItemHeight = 0
+      OnClick = lstaddrsClick
+      OnDblClick = lstaddrsDblClick
+      OnSelectionChange = lstaddrsSelectionChange
+      TabOrder = 4
+    end
+    object txtsvalue: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 160
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsvalue
+      EditLabel.AnchorSideRight.Control = txtsvalue
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsvalue
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 142
+      EditLabel.Width = 96
+      EditLabel.Caption = 'Value'
+      EditLabel.ParentColor = False
+      TabOrder = 5
+    end
+    object chkadvsearch: TCheckBox
+      Left = 216
+      Height = 19
+      Top = 288
+      Width = 110
+      Caption = 'Advanced search'
+      TabOrder = 6
     end
   end
 end

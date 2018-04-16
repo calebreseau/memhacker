@@ -6,7 +6,7 @@ interface
 
 uses 
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows;
+  ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows,umem;
 
 type
 
@@ -22,23 +22,37 @@ type
   end;
 
   Tfrmmain = class(TForm)
+    btnsearch: TButton;
     btnsavelog: TButton;
     btnwrite: TButton;
     btnread: TButton;
     btnrefresh: TButton;
     btnhandle: TButton;
     btnlog: TButton;
+    chkadvsearch: TCheckBox;
+    grpsearch: TGroupBox;
     grplog: TGroupBox;
+    grpsvtype: TGroupBox;
+    lstaddrs: TListBox;
+    txtsstart: TLabeledEdit;
     lbllength: TLabel;
+    lblslength: TLabel;
     mmlog: TMemo;
+    rbsdword: TRadioButton;
+    rbsfloat: TRadioButton;
+    rbsqword: TRadioButton;
+    rbsstring: TRadioButton;
     txtlength: TEdit;
     grpvtype: TGroupBox;
     grpmemutils: TGroupBox;
+    txtslength: TEdit;
     txtresp: TLabeledEdit;
     rbdword: TRadioButton;
     rbqword: TRadioButton;
     rbfloat: TRadioButton;
     rbstring: TRadioButton;
+    txtsend: TLabeledEdit;
+    txtsvalue: TLabeledEdit;
     txtvalue: TLabeledEdit;
     txtaddr: TLabeledEdit;
     lblpname: TLabel;
@@ -47,12 +61,17 @@ type
     procedure btnreadClick(Sender: TObject);
     procedure btnrefreshClick(Sender: TObject);
     procedure btnsavelogClick(Sender: TObject);
+    procedure btnsearchClick(Sender: TObject);
     procedure btnwriteClick(Sender: TObject);
     procedure btnlogClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure lstaddrsClick(Sender: TObject);
+    procedure lstaddrsDblClick(Sender: TObject);
+    procedure lstaddrsSelectionChange(Sender: TObject; User: boolean);
     procedure txtaddrChange(Sender: TObject);
     procedure txtlengthChange(Sender: TObject);
+    procedure txtprocessChange(Sender: TObject);
   private
 
   public
@@ -100,20 +119,35 @@ end;
 procedure init_main;
 begin        
     tw_init_srv;
-    tw_init_srv_log;
     init_inject;
     with thrui.create(false) do freeonterminate:=true;
     with thrlog.create(false) do freeonterminate:=true;
 end;
 
 procedure thrui.execute;
+var
+     lastindex:integer;
+     i:integer;
 begin
+    lastindex:=0;
   while true do
   begin
     sleep(100);
     try
         setlasterror(0);
-        if data<>nil then frmmain.txtresp.text:=string(tdata(data^).response);
+        if data<>nil then
+        begin
+          frmmain.txtresp.text:=string(tdata(data^).response);
+        end;
+        with tdata(data^).searchdata do
+        begin
+          if index<>lastindex then
+          begin
+            frmmain.lstaddrs.clear;
+            for i:=0 to index do frmmain.lstaddrs.Items.add(retaddrs[i]);
+            lastindex:=index;
+          end;
+        end;
     except
         showmessage('Error reading response: '+inttostr(getlasterror));
     end;
@@ -130,7 +164,7 @@ begin
   begin
     sleep(100);
     try
-      with tlog(datalog^) do
+      with tdata(data^)._log do
       begin
         if index<>lastindex then
         begin
@@ -159,7 +193,50 @@ end;
 procedure Tfrmmain.FormDestroy(Sender: TObject);
 begin
   tw_exit;
-  tw_exit_log;
+end;
+
+procedure Tfrmmain.lstaddrsClick(Sender: TObject);
+begin
+    if lstaddrs.itemindex<0 then exit;
+    if length(lstaddrs.items[lstaddrs.itemindex])<2 then exit;
+    txtaddr.Text:=lstaddrs.items[lstaddrs.itemindex];
+    rbdword.checked:=rbsdword.checked;
+    rbqword.checked:=rbsqword.checked;
+    rbfloat.checked:=rbsfloat.checked;
+    rbstring.checked:=rbsstring.checked;
+    txtlength.text:=txtslength.text;
+    btnreadclick(nil);
+end;
+
+procedure Tfrmmain.lstaddrsDblClick(Sender: TObject);
+begin
+  lstaddrs.clear;
+end;
+
+function IsNumber(N : String) : Boolean;
+var
+I : Integer;
+begin
+Result := True;
+if Trim(N) = '' then
+ Exit(False);
+
+if (Length(Trim(N)) > 1) and (Trim(N)[1] = '0') then
+Exit(False);
+
+for I := 1 to Length(N) do
+begin
+ if not (N[I] in ['0'..'9']) then
+  begin
+   Result := False;
+   Break;
+ end;
+end;
+end;
+
+procedure Tfrmmain.lstaddrsSelectionChange(Sender: TObject; User: boolean);
+begin
+
 end;
 
 
@@ -172,6 +249,11 @@ procedure Tfrmmain.txtlengthChange(Sender: TObject);
 begin
   if txtlength.text='' then txtlength.text:='0';
   if strtoint(txtlength.text)>16 then txtlength.text:='16';
+end;
+
+procedure Tfrmmain.txtprocessChange(Sender: TObject);
+begin
+
 end;
 
 procedure Tfrmmain.btnwriteClick(Sender: TObject);
@@ -202,6 +284,7 @@ begin
   adata.addr:=strtoint64(txtaddr.text);
   adata.cmd:=1;
   adata.pid:=getpidbyprocessname(txtprocess.text);
+  adata.searchdata:=tdata(data^).searchdata;
   writedata(adata);
 end;
 
@@ -246,6 +329,43 @@ begin
   end;
 end;
 
+procedure Tfrmmain.btnsearchClick(Sender: TObject);
+var
+  adata:tdata;
+  asearchdata:tsearchdata;
+begin
+  asearchdata.value:=txtsvalue.text;
+  if rbsstring.checked then
+  begin
+       asearchdata.valuetype:=vt_string;
+       asearchdata.valuelength:=strtoint64(txtslength.text);
+  end;
+  if rbsdword.checked then
+  begin
+       asearchdata.valuetype:=vt_dword;
+       asearchdata.valuelength:=4;
+  end;
+  if rbsqword.checked then
+  begin
+       asearchdata.valuetype:=vt_qword;
+       asearchdata.valuelength:=8;
+  end;
+  if rbsfloat.checked then
+  begin
+       asearchdata.valuetype:=vt_float;
+       asearchdata.valuelength:=4;
+  end;
+  asearchdata.advsearch:=chkadvsearch.checked;
+  asearchdata.startaddr:=strtoint64(txtsstart.text);
+  if strtoint64(txtsend.text)>strtoint64(txtsstart.text) then
+    asearchdata.endaddr:=strtoint64(txtsend.text)
+    else asearchdata.endaddr:=9223372036854775807;
+  adata.searchdata:=asearchdata;
+  adata.cmd:=4;
+  adata.pid:=getpidbyprocessname(txtprocess.text);
+  writedata(adata);
+end;
+
 procedure Tfrmmain.btnreadClick(Sender: TObject);
 var
   adata:tdata;
@@ -273,6 +393,7 @@ begin
   adata.addr:=strtoint64(txtaddr.text);
   adata.cmd:=2;
   adata.pid:=getpidbyprocessname(txtprocess.text);
+  adata.searchdata:=tdata(data^).searchdata;
   writedata(adata);
 end;
 
@@ -282,6 +403,7 @@ var
 begin
   adata.cmd:=3;
   adata.pid:=getpidbyprocessname(txtprocess.text);
+  adata.searchdata:=tdata(data^).searchdata;
   writedata(adata);
 end;
 

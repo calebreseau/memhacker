@@ -68,6 +68,6 @@ lib/
 *.lps
 *.res
 victim.exe
-target.exe
+/target.exe
 winmitigations.pas
 *.zip
