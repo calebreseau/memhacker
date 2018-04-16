@@ -1,5 +1,6 @@
 v0.3
 added search function
+remade UI
 v0.2
 added logging
 added logging in functions readmem and writemem
