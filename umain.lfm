@@ -1,12 +1,12 @@
 object frmmain: Tfrmmain
   Left = 295
-  Height = 673
+  Height = 689
   Top = 12
   Width = 654
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.2 by cal_'
-  ClientHeight = 673
+  Caption = 'memhacker v0.3 by cal_'
+  ClientHeight = 689
   ClientWidth = 654
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -378,5 +378,21 @@ object frmmain: Tfrmmain
       Caption = 'Advanced search'
       TabOrder = 6
     end
+  end
+  object lblwebsite: TLabel
+    Left = 16
+    Height = 16
+    Top = 672
+    Width = 181
+    Caption = 'caldevelopment.wordpress.com'
+    Font.CharSet = ANSI_CHARSET
+    Font.Color = clBlue
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Pitch = fpVariable
+    Font.Quality = fqDraft
+    ParentColor = False
+    ParentFont = False
+    OnClick = lblwebsiteClick
   end
 end

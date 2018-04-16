@@ -6,7 +6,7 @@ interface
 
 uses 
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows,umem;
+  ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows,umem,lclintf;
 
 type
 
@@ -33,6 +33,7 @@ type
     grpsearch: TGroupBox;
     grplog: TGroupBox;
     grpsvtype: TGroupBox;
+    lblwebsite: TLabel;
     lstaddrs: TListBox;
     txtsstart: TLabeledEdit;
     lbllength: TLabel;
@@ -66,6 +67,7 @@ type
     procedure btnlogClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure lblwebsiteClick(Sender: TObject);
     procedure lstaddrsClick(Sender: TObject);
     procedure lstaddrsDblClick(Sender: TObject);
     procedure lstaddrsSelectionChange(Sender: TObject; User: boolean);
@@ -193,6 +195,11 @@ end;
 procedure Tfrmmain.FormDestroy(Sender: TObject);
 begin
   tw_exit;
+end;
+
+procedure Tfrmmain.lblwebsiteClick(Sender: TObject);
+begin
+  openurl('https://caldevelopment.wordpress.com');
 end;
 
 procedure Tfrmmain.lstaddrsClick(Sender: TObject);
