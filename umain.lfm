@@ -5,7 +5,7 @@ object frmmain: Tfrmmain
   Width = 654
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.3 by cal_'
+  Caption = 'memhacker v0.4 by cal_'
   ClientHeight = 689
   ClientWidth = 654
   OnCreate = FormCreate
@@ -220,10 +220,19 @@ object frmmain: Tfrmmain
       Left = 8
       Height = 43
       Top = 232
-      Width = 592
+      Width = 288
       Caption = 'Save log'
       OnClick = btnsavelogClick
       TabOrder = 1
+    end
+    object btnclearlog: TButton
+      Left = 312
+      Height = 43
+      Top = 232
+      Width = 288
+      Caption = 'Clear'
+      OnClick = btnclearlogClick
+      TabOrder = 2
     end
   end
   object grpsearch: TGroupBox
@@ -239,8 +248,8 @@ object frmmain: Tfrmmain
       Left = 8
       Height = 25
       Top = 284
-      Width = 200
-      Caption = 'Search'
+      Width = 96
+      Caption = 'New search'
       OnClick = btnsearchClick
       TabOrder = 0
     end
@@ -344,12 +353,13 @@ object frmmain: Tfrmmain
     end
     object lstaddrs: TListBox
       Left = 8
-      Height = 267
+      Height = 227
       Top = 8
       Width = 200
       ItemHeight = 0
       OnClick = lstaddrsClick
       OnDblClick = lstaddrsDblClick
+      OnKeyPress = lstaddrsKeyPress
       OnSelectionChange = lstaddrsSelectionChange
       TabOrder = 4
     end
@@ -377,6 +387,32 @@ object frmmain: Tfrmmain
       Width = 110
       Caption = 'Advanced search'
       TabOrder = 6
+    end
+    object btnresearch: TButton
+      Left = 112
+      Height = 25
+      Top = 284
+      Width = 96
+      Caption = 'Search in values'
+      OnClick = btnresearchClick
+      TabOrder = 7
+    end
+    object pgbsearch: TProgressBar
+      Left = 8
+      Height = 20
+      Top = 257
+      Width = 200
+      Smooth = True
+      TabOrder = 8
+      BarShowText = True
+    end
+    object lbladdrcount: TLabel
+      Left = 8
+      Height = 15
+      Top = 240
+      Width = 97
+      Caption = 'Found 0 addresses'
+      ParentColor = False
     end
   end
   object lblwebsite: TLabel

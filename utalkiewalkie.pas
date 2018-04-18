@@ -8,7 +8,7 @@ uses
   Classes, SysUtils,windows,winmiscutils;
  
 type
-
+    tretaddrs=array[0..1023] of string[255];
     tsearchdata=record
       startaddr:qword;
       endaddr:qword;
@@ -17,7 +17,9 @@ type
       valuetype:dword;
       index:integer;
       advsearch:boolean;
-      retaddrs:array[0..1023] of string[255];
+      retaddrs:tretaddrs;
+      addrcount:integer;
+      pgcurr,pgtotal:dword;
     end;
 
     tlog=record
@@ -89,6 +91,9 @@ begin
      tdata(data^)._log.index:=0;
      fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
      tdata(data^).searchdata.index:=0;
+     tdata(data^).searchdata.addrcount:=0;
+     tdata(data^).searchdata.pgtotal:=0;
+     tdata(data^).searchdata.pgcurr:=0;
      fillchar(tdata(data^).searchdata.retaddrs,sizeof(tdata(data^).searchdata.retaddrs),chr(0));
      //sysmsgbox('data srv: '+inttostr(qword(data))+' err: '+inttostr(getlasterror)); debug
      result:=true;

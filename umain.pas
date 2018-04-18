@@ -6,7 +6,8 @@ interface
 
 uses 
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  ExtCtrls, wininjection,winmiscutils,utalkiewalkie,ntdll,windows,umem,lclintf;
+  ExtCtrls, wininjection, winmiscutils, utalkiewalkie, ntdll, windows, umem,
+  lclintf, Menus, ComCtrls;
 
 type
 
@@ -29,12 +30,16 @@ type
     btnrefresh: TButton;
     btnhandle: TButton;
     btnlog: TButton;
+    btnresearch: TButton;
+    btnclearlog: TButton;
     chkadvsearch: TCheckBox;
     grpsearch: TGroupBox;
     grplog: TGroupBox;
     grpsvtype: TGroupBox;
+    lbladdrcount: TLabel;
     lblwebsite: TLabel;
     lstaddrs: TListBox;
+    pgbsearch: TProgressBar;
     txtsstart: TLabeledEdit;
     lbllength: TLabel;
     lblslength: TLabel;
@@ -58,9 +63,11 @@ type
     txtaddr: TLabeledEdit;
     lblpname: TLabel;
     txtprocess: TComboBox;
+    procedure btnclearlogClick(Sender: TObject);
     procedure btnhandleClick(Sender: TObject);
     procedure btnreadClick(Sender: TObject);
     procedure btnrefreshClick(Sender: TObject);
+    procedure btnresearchClick(Sender: TObject);
     procedure btnsavelogClick(Sender: TObject);
     procedure btnsearchClick(Sender: TObject);
     procedure btnwriteClick(Sender: TObject);
@@ -70,6 +77,7 @@ type
     procedure lblwebsiteClick(Sender: TObject);
     procedure lstaddrsClick(Sender: TObject);
     procedure lstaddrsDblClick(Sender: TObject);
+    procedure lstaddrsKeyPress(Sender: TObject; var Key: char);
     procedure lstaddrsSelectionChange(Sender: TObject; User: boolean);
     procedure txtaddrChange(Sender: TObject);
     procedure txtlengthChange(Sender: TObject);
@@ -101,7 +109,7 @@ begin
      if paramcount>0 then targetname:=paramstr(1) else targetname:='lsass.exe';
      setprivilege('sedebugprivilege',true);  //get debug privileges so we can inject into lsass
      targetpid:=getpidbyprocessname(targetname);
-     targethandle:=openprocess(process_all_access,false,targetpid);
+     targethandle:=openprocess(process_vm_write or process_vm_operation or PROCESS_CREATE_THREAD ,false,targetpid);
      if targethandle<1 then
      begin
           showmessage('Error opening '+targetname+': '+inttostr(getlasterror));
@@ -110,7 +118,7 @@ begin
      stat:=injectsys(targethandle,false,th,ch,getcurrentdir+'\memhacker.dll'+chr(0));
      if stat<>0 then
      begin
-          showmessage('Error injecting dll: '+inttostr(stat));
+          showmessage('Error injecting dll: '+inttohex(stat,8));
           closehandle(targethandle);
           halt;
      end;
@@ -143,6 +151,9 @@ begin
         end;
         with tdata(data^).searchdata do
         begin
+          frmmain.pgbsearch.max:=pgtotal;
+          frmmain.pgbsearch.position:=pgcurr;
+          frmmain.lbladdrcount.caption:='Found '+inttostr(addrcount)+' occurences';
           if index<>lastindex then
           begin
             frmmain.lstaddrs.clear;
@@ -217,7 +228,16 @@ end;
 
 procedure Tfrmmain.lstaddrsDblClick(Sender: TObject);
 begin
-  lstaddrs.clear;
+     tdata(data^).searchdata.index:=0;
+     tdata(data^).searchdata.addrcount:=0;
+     tdata(data^).searchdata.pgtotal:=0;
+     tdata(data^).searchdata.pgcurr:=0;
+     fillchar(tdata(data^).searchdata.retaddrs,sizeof(tdata(data^).searchdata.retaddrs),chr(0));
+end;
+
+procedure Tfrmmain.lstaddrsKeyPress(Sender: TObject; var Key: char);
+begin
+
 end;
 
 function IsNumber(N : String) : Boolean;
@@ -245,7 +265,6 @@ procedure Tfrmmain.lstaddrsSelectionChange(Sender: TObject; User: boolean);
 begin
 
 end;
-
 
 procedure Tfrmmain.txtaddrChange(Sender: TObject);
 begin
@@ -292,6 +311,7 @@ begin
   adata.cmd:=1;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
+  adata._log:=tdata(data^)._log;
   writedata(adata);
 end;
 
@@ -322,6 +342,13 @@ begin
   if txtprocess.items.Count>0 then txtprocess.ItemIndex:=0;
 end;
 
+procedure Tfrmmain.btnresearchClick(Sender: TObject);
+begin
+    tdata(data^).searchdata.value:=txtsvalue.text;
+    tdata(data^).searchdata.pgcurr:=0;
+    tdata(data^).cmd:=5;
+end;
+
 procedure Tfrmmain.btnsavelogClick(Sender: TObject);
 var
   fg:tsavedialog;
@@ -342,6 +369,7 @@ var
   asearchdata:tsearchdata;
 begin
   asearchdata.value:=txtsvalue.text;
+  asearchdata.pgcurr:=0;
   if rbsstring.checked then
   begin
        asearchdata.valuetype:=vt_string;
@@ -401,6 +429,7 @@ begin
   adata.cmd:=2;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
+  adata._log:=tdata(data^)._log;
   writedata(adata);
 end;
 
@@ -411,7 +440,15 @@ begin
   adata.cmd:=3;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
+  adata._log:=tdata(data^)._log;
   writedata(adata);
+end;
+
+procedure Tfrmmain.btnclearlogClick(Sender: TObject);
+begin
+  if tdata(data^).cmd<>0 then exit;
+  tdata(data^)._log.index:=0;
+  fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
 end;
 
 end.

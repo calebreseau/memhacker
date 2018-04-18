@@ -29,59 +29,68 @@ begin
   while 1=1 do
   begin
     sleep(10);
-    if not stillalive then exit;
-    if tdata(utalkiewalkie.data^).cmd<>0 then
+    if not stillalive then break;
+    if tdata(data^).cmd<>0 then
     begin
-       //sysmsgbox('cmd '+inttostr(tdata(utalkiewalkie.data^).cmd)); debug
-       if tdata(utalkiewalkie.data^).cmd=2 then
+       //sysmsgbox('cmd '+inttostr(tdata(data^).cmd)); debug
+       if tdata(data^).cmd=2 then
        begin
           log('received cmd READ');
-          log('Target PID: '+inttostr(tdata(utalkiewalkie.data^).pid));
-          log('Value type: '+inttostr(tdata(utalkiewalkie.data^).valuetype));
-          log('Value length: '+inttostr(tdata(utalkiewalkie.data^).valuelength));
-          log('Address: 0x'+inttohex(tdata(utalkiewalkie.data^).addr,8));
-          tdata(utalkiewalkie.data^).response:=readmem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).valuelength);
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('Value type: '+inttostr(tdata(data^).valuetype));
+          log('Value length: '+inttostr(tdata(data^).valuelength));
+          log('Address: 0x'+inttohex(tdata(data^).addr,8));
+          tdata(data^).response:=readmem(tdata(data^).pid,tdata(data^).addr,tdata(data^).valuetype,tdata(data^).valuelength);
           log(#13#10'///'#13#10);
        end;
        //
-       if tdata(utalkiewalkie.data^).cmd=1 then
+       if tdata(data^).cmd=1 then
        begin
           log('received cmd WRITE');
-          log('Target PID: '+inttostr(tdata(utalkiewalkie.data^).pid));
-          log('Value: '+tdata(utalkiewalkie.data^).value);
-          log('Value type: '+inttostr(tdata(utalkiewalkie.data^).valuetype));
-          log('Value length: '+inttostr(tdata(utalkiewalkie.data^).valuelength));
-          log('Address: 0x'+inttohex(tdata(utalkiewalkie.data^).addr,8));
-          tdata(utalkiewalkie.data^).response:=writemem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).addr,tdata(utalkiewalkie.data^).valuetype,tdata(utalkiewalkie.data^).value,tdata(utalkiewalkie.data^).valuelength);
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('Value: '+tdata(data^).value);
+          log('Value type: '+inttostr(tdata(data^).valuetype));
+          log('Value length: '+inttostr(tdata(data^).valuelength));
+          log('Address: 0x'+inttohex(tdata(data^).addr,8));
+          tdata(data^).response:=writemem(tdata(data^).pid,tdata(data^).addr,tdata(data^).valuetype,tdata(data^).value,tdata(data^).valuelength);
           log(#13#10'///'#13#10);
        end;
-       if tdata(utalkiewalkie.data^).cmd=4 then
+       if tdata(data^).cmd=4 then
        begin
           log('received cmd SEARCH');
-          log('Target PID: '+inttostr(tdata(utalkiewalkie.data^).pid));
-          log('Value: '+tdata(utalkiewalkie.data^).searchdata.value);
-          log('Value type: '+inttostr(tdata(utalkiewalkie.data^).searchdata.valuetype));
-          log('Value length: '+inttostr(tdata(utalkiewalkie.data^).searchdata.valuelength));
-          log('Start address: '+inttostr(tdata(utalkiewalkie.data^).searchdata.startaddr));
-          log('End address: '+inttostr(tdata(utalkiewalkie.data^).searchdata.endaddr));
-          log('Advanced search: '+booltostr(tdata(utalkiewalkie.data^).searchdata.advsearch,true));
-          tdata(utalkiewalkie.data^).response:=searchmem(tdata(utalkiewalkie.data^).pid,tdata(utalkiewalkie.data^).searchdata.value,tdata(utalkiewalkie.data^).searchdata.valuetype,tdata(utalkiewalkie.data^).searchdata.valuelength,tdata(utalkiewalkie.data^).searchdata.startaddr,tdata(utalkiewalkie.data^).searchdata.endaddr,tdata(utalkiewalkie.data^).searchdata.advsearch);
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('Value: '+tdata(data^).searchdata.value);
+          log('Value type: '+inttostr(tdata(data^).searchdata.valuetype));
+          log('Value length: '+inttostr(tdata(data^).searchdata.valuelength));
+          log('Start address: '+inttostr(tdata(data^).searchdata.startaddr));
+          log('End address: '+inttostr(tdata(data^).searchdata.endaddr));
+          log('Advanced search: '+booltostr(tdata(data^).searchdata.advsearch,true));
+          tdata(data^).response:=searchmem(tdata(data^).pid,tdata(data^).searchdata.value,tdata(data^).searchdata.valuetype,tdata(data^).searchdata.valuelength,tdata(data^).searchdata.startaddr,tdata(data^).searchdata.endaddr,tdata(data^).searchdata.advsearch);
+          log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=5 then
+       begin
+          log('received cmd RESEARCH');
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('Value: '+tdata(data^).searchdata.value);
+          log('Value type: '+inttostr(tdata(data^).searchdata.valuetype));
+          log('Value length: '+inttostr(tdata(data^).searchdata.valuelength));
+          tdata(data^).response:=researchmem(tdata(data^).pid,tdata(data^).searchdata.value,tdata(data^).searchdata.valuetype,tdata(data^).searchdata.valuelength);
           log(#13#10'///'#13#10);
        end;
        //
-       if tdata(utalkiewalkie.data^).cmd=3 then
+       if tdata(data^).cmd=3 then
        begin
           log('received cmd GETHANDLE');
-          log('Target PID: '+inttostr(tdata(utalkiewalkie.data^).pid));
-          tdata(utalkiewalkie.data^).response:=inttohex(getsysprocesshandle(tdata(utalkiewalkie.data^).pid),4);
-          log('Response: '+tdata(utalkiewalkie.data^).response);
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          tdata(data^).response:=inttohex(getsysprocesshandle(tdata(data^).pid),4);
+          log('Response: '+tdata(data^).response);
           log(#13#10'///'#13#10);
        end;
        //sysmsgbox(resp);   debug
-       tdata(utalkiewalkie.data^).cmd:=0;
+       tdata(data^).cmd:=0;
     end;
   end;
-  tw_exit;
   log(#1310'Leaving DLL'#13#10);
 end;
 
