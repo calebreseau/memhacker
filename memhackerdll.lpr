@@ -4,7 +4,7 @@ library memhackerdll;
  
 
 uses
-  Classes,utalkiewalkie,wininjection,windows,sysutils,winmiscutils,ntdll, umem;
+  Classes,utalkiewalkie,windows,sysutils,winmiscutils,ntdll,umem;
 
 function stillalive:boolean;
 var
@@ -16,20 +16,33 @@ begin
 end;
 
 procedure _main;
+var
+  satick:dword;
 begin
-  try
-    deletefile('memhackerdll_log.txt');
-  finally
+    if not stillalive then exit;
+  if not tw_init_cl then
+  begin
+       sysmsgbox('couldnt init communication, exiting');
+       exit;
   end;
-  if not stillalive then exit;
+  satick:=0;
   //sysmsgbox('start'); //debug
-  if not tw_init_cl then exit;
   //sysmsgbox('init ok');   //debug
   log('enter main');
   while 1=1 do
   begin
     sleep(10);
-    if not stillalive then break;
+    if satick=100 then
+    begin
+         satick:=0;
+         //log('checking if gui is stillalive...');
+         if not stillalive then
+         begin
+              log('gui isnt alive, exiting..');
+              break;
+         end;
+    end
+    else satick+=1;
     if tdata(data^).cmd<>0 then
     begin
        //sysmsgbox('cmd '+inttostr(tdata(data^).cmd)); debug
@@ -96,19 +109,13 @@ end;
 
 procedure DllMain(dllparam: ptrint);register;
 begin
-  case dllparam of
-    DLL_PROCESS_ATTACH:outputdebugstring('DLL_PROCESS_ATTACH');
-    DLL_PROCESS_DETACH:_main;   //for some reason, even on attach it calls detach so i gotta use that even its unclean and will call the dll on real detach too
-    DLL_THREAD_ATTACH:outputdebugstring('DLL_THREAD_ATTACH');
-    DLL_THREAD_DETACH:outputdebugstring('DLL_THREAD_DETACH');
-  end;
+  _main;
 end;
 
 exports _main;
 
-
 begin
   dll_thread_attach_hook := @dllmain;
-  //disablethreadlibrarycalls(hinstance);
+  _main;
 end.
 
