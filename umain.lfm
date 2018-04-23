@@ -5,7 +5,7 @@ object frmmain: Tfrmmain
   Width = 654
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.4.1 by cal_'
+  Caption = 'memhacker v0.5 by cal_'
   ClientHeight = 689
   ClientWidth = 654
   OnCreate = FormCreate
