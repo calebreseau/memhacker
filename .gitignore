@@ -71,6 +71,3 @@ victim.exe
 /target.exe
 winmitigations.pas
 *.zip
-test.bat
-*.exe
-*.dll
