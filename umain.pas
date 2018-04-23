@@ -32,6 +32,8 @@ type
     btnlog: TButton;
     btnresearch: TButton;
     btnclearlog: TButton;
+    btnstopsearch: TButton;
+    chkbottom: TCheckBox;
     chkadvsearch: TCheckBox;
     grpsearch: TGroupBox;
     grplog: TGroupBox;
@@ -70,15 +72,18 @@ type
     procedure btnresearchClick(Sender: TObject);
     procedure btnsavelogClick(Sender: TObject);
     procedure btnsearchClick(Sender: TObject);
+    procedure btnstopsearchClick(Sender: TObject);
     procedure btnwriteClick(Sender: TObject);
     procedure btnlogClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure grplogClick(Sender: TObject);
     procedure lblwebsiteClick(Sender: TObject);
     procedure lstaddrsClick(Sender: TObject);
     procedure lstaddrsDblClick(Sender: TObject);
     procedure lstaddrsKeyPress(Sender: TObject; var Key: char);
     procedure lstaddrsSelectionChange(Sender: TObject; User: boolean);
+    procedure mmlogChange(Sender: TObject);
     procedure txtaddrChange(Sender: TObject);
     procedure txtlengthChange(Sender: TObject);
     procedure txtprocessChange(Sender: TObject);
@@ -128,7 +133,11 @@ end;
 
 procedure init_main;
 begin        
-    tw_init_srv;
+    if tw_init_srv=false then
+    begin
+      showmessage('couldnt init srv, exiting');
+      halt;
+    end;
     init_inject;
     with thrui.create(false) do freeonterminate:=true;
     with thrlog.create(false) do freeonterminate:=true;
@@ -138,7 +147,9 @@ procedure thrui.execute;
 var
      lastindex:integer;
      i:integer;
+     strs:tstringlist;
 begin
+    strs:=tstringlist.create;
     lastindex:=0;
   while true do
   begin
@@ -156,8 +167,9 @@ begin
           frmmain.lbladdrcount.caption:='Found '+inttostr(addrcount)+' occurences';
           if index<>lastindex then
           begin
-            frmmain.lstaddrs.clear;
-            for i:=0 to index do frmmain.lstaddrs.Items.add(retaddrs[i]);
+            strs.clear;
+            for i:=0 to index do strs.add(retaddrs[i]);
+            frmmain.lstaddrs.Items:=strs;
             lastindex:=index;
           end;
         end;
@@ -169,9 +181,11 @@ end;
 
 procedure thrlog.execute;
 var
-     lastindex:integer;
+     lastindex,lastpos:integer;
      i:integer;
+     strs:tstringlist;
 begin
+  strs:=tstringlist.create;
   lastindex:=0;
   while true do
   begin
@@ -179,10 +193,16 @@ begin
     try
       with tdata(data^)._log do
       begin
-        if index<>lastindex then
+        if (index<>lastindex) then
         begin
-          frmmain.mmlog.clear;
-          for i:=0 to index do frmmain.mmlog.Lines.add(strings[i]);
+          strs.clear;
+          lastpos:=frmmain.mmlog.selstart;
+          for i:=0 to index do strs.add(strings[i]);
+          frmmain.mmlog.Lines:=strs;
+          if frmmain.chkbottom.checked then
+              frmmain.mmlog.selstart:=frmmain.mmlog.Lines.Text.length
+          else
+              frmmain.mmlog.selstart:=lastpos;
           lastindex:=index;
         end;
       end;
@@ -194,6 +214,7 @@ end;
 
 procedure Tfrmmain.FormCreate(Sender: TObject);
 begin
+     mmlog.Lines.clear;
      btnrefreshclick(sender);
      if fileexists('memhacker.dll') then init_main
      else
@@ -206,6 +227,11 @@ end;
 procedure Tfrmmain.FormDestroy(Sender: TObject);
 begin
   tw_exit;
+end;
+
+procedure Tfrmmain.grplogClick(Sender: TObject);
+begin
+
 end;
 
 procedure Tfrmmain.lblwebsiteClick(Sender: TObject);
@@ -228,6 +254,7 @@ end;
 
 procedure Tfrmmain.lstaddrsDblClick(Sender: TObject);
 begin
+     if messagedlg('memhacker','Delete addresses ?',mtconfirmation,mbyesnocancel,0)<>mryes then exit;
      tdata(data^).searchdata.index:=0;
      tdata(data^).searchdata.addrcount:=0;
      tdata(data^).searchdata.pgtotal:=0;
@@ -242,26 +269,31 @@ end;
 
 function IsNumber(N : String) : Boolean;
 var
-I : Integer;
+    I : Integer;
 begin
-Result := True;
-if Trim(N) = '' then
- Exit(False);
+    Result := True;
+    if Trim(N) = '' then
+        Exit(False);
 
-if (Length(Trim(N)) > 1) and (Trim(N)[1] = '0') then
-Exit(False);
+    if (Length(Trim(N)) > 1) and (Trim(N)[1] = '0') then
+        Exit(False);
 
-for I := 1 to Length(N) do
-begin
- if not (N[I] in ['0'..'9']) then
-  begin
-   Result := False;
-   Break;
- end;
-end;
+    for I := 1 to Length(N) do
+    begin
+         if not (N[I] in ['0'..'9']) then
+         begin
+             Result := False;
+             Break;
+         end;
+    end;
 end;
 
 procedure Tfrmmain.lstaddrsSelectionChange(Sender: TObject; User: boolean);
+begin
+
+end;
+
+procedure Tfrmmain.mmlogChange(Sender: TObject);
 begin
 
 end;
@@ -304,6 +336,7 @@ begin
   end;
   if rbfloat.checked then
   begin
+       adata.value:=inttostr(round(strtofloat(txtvalue.text)));
        adata.valuetype:=vt_float;
        adata.valuelength:=4;
   end;
@@ -344,6 +377,7 @@ end;
 
 procedure Tfrmmain.btnresearchClick(Sender: TObject);
 begin
+    tdata(data^).searchdata.stop:=false;
     tdata(data^).searchdata.value:=txtsvalue.text;
     tdata(data^).searchdata.pgcurr:=0;
     tdata(data^).cmd:=5;
@@ -368,6 +402,7 @@ var
   adata:tdata;
   asearchdata:tsearchdata;
 begin
+  asearchdata.stop:=false;
   asearchdata.value:=txtsvalue.text;
   asearchdata.pgcurr:=0;
   if rbsstring.checked then
@@ -399,6 +434,11 @@ begin
   adata.cmd:=4;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   writedata(adata);
+end;
+
+procedure Tfrmmain.btnstopsearchClick(Sender: TObject);
+begin
+  tdata(data^).searchdata.stop:=true;
 end;
 
 procedure Tfrmmain.btnreadClick(Sender: TObject);

@@ -5,7 +5,7 @@ object frmmain: Tfrmmain
   Width = 654
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.4 by cal_'
+  Caption = 'memhacker v0.4.1 by cal_'
   ClientHeight = 689
   ClientWidth = 654
   OnCreate = FormCreate
@@ -208,11 +208,14 @@ object frmmain: Tfrmmain
     ClientHeight = 284
     ClientWidth = 613
     TabOrder = 4
+    OnClick = grplogClick
     object mmlog: TMemo
       Left = 8
-      Height = 216
+      Height = 200
       Top = 8
       Width = 592
+      OnChange = mmlogChange
+      ReadOnly = True
       ScrollBars = ssAutoBoth
       TabOrder = 0
     end
@@ -233,6 +236,16 @@ object frmmain: Tfrmmain
       Caption = 'Clear'
       OnClick = btnclearlogClick
       TabOrder = 2
+    end
+    object chkbottom: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 208
+      Width = 168
+      Caption = 'Automatically go to bottom'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
     end
   end
   object grpsearch: TGroupBox
@@ -401,7 +414,7 @@ object frmmain: Tfrmmain
       Left = 8
       Height = 20
       Top = 257
-      Width = 200
+      Width = 136
       Smooth = True
       TabOrder = 8
       BarShowText = True
@@ -413,6 +426,15 @@ object frmmain: Tfrmmain
       Width = 97
       Caption = 'Found 0 addresses'
       ParentColor = False
+    end
+    object btnstopsearch: TButton
+      Left = 149
+      Height = 25
+      Top = 252
+      Width = 59
+      Caption = 'Stop'
+      OnClick = btnstopsearchClick
+      TabOrder = 9
     end
   end
   object lblwebsite: TLabel
