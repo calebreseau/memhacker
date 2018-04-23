@@ -5,7 +5,7 @@ unit wininjection;
 interface
  
 uses
-  Classes, SysUtils,windows,dialogs,winmiscutils,ntdll; 
+  Classes, SysUtils,windows,winmiscutils,ntdll;
 
 
   function injectsys(ahandle:thandle;susp:boolean;th:thandle;ch:client_id;dll:string):dword;

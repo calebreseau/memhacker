@@ -8,7 +8,7 @@ uses
   Classes, SysUtils,windows,winmiscutils;
  
 type
-    tretaddrs=array[0..1023] of string[255];
+    tretaddrs=array[0..1023] of string[18];
     tsearchdata=record
       startaddr:qword;
       endaddr:qword;
@@ -20,6 +20,7 @@ type
       retaddrs:tretaddrs;
       addrcount:integer;
       pgcurr,pgtotal:dword;
+      stop:boolean;
     end;
 
     tlog=record
@@ -58,12 +59,17 @@ var
 implementation
 
 procedure log(str:string);
+var
+  i:integer;
 begin
     with tdata(data^)._log do
     begin
-         if index=1023 then index:=0;
-         strings[index]:=str;
-         index+=1;
+         if index=1023 then
+         begin
+              //index:=0;
+             for i:=0 to 1022 do strings[i]:=strings[i+1];
+         end else index+=1;
+         strings[index]:='['+FormatDateTime('hh:nn:ss', now)+']'+str;
     end;
 end;
 
@@ -88,12 +94,14 @@ begin
      if data=nil then exit;
      tdata(data^).response:='';
      tdata(data^).cmd:=0;
-     tdata(data^)._log.index:=0;
      fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
+     log('init log');
+     tdata(data^)._log.index:=0;
      tdata(data^).searchdata.index:=0;
      tdata(data^).searchdata.addrcount:=0;
      tdata(data^).searchdata.pgtotal:=0;
      tdata(data^).searchdata.pgcurr:=0;
+     tdata(data^).searchdata.stop:=false;
      fillchar(tdata(data^).searchdata.retaddrs,sizeof(tdata(data^).searchdata.retaddrs),chr(0));
      //sysmsgbox('data srv: '+inttostr(qword(data))+' err: '+inttostr(getlasterror)); debug
      result:=true;
