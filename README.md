@@ -27,6 +27,7 @@ To chosse the process, you just have to input its name to the "Process name" tex
 
 First, input the address you want to read memory at in the "address" text box. Be sure there is a dollar before the address! 
   > Example: $DEADBEEF
+  
 Then select the type of the value you want to read. If it's a string, specify the length of the string you want to read in the textbox next to the "string" radiobutton.
 After that, just click the read button, and if there is no error, the value will display in the "response" textbox.
 If there is an error, you can check what the error is in the log.
@@ -35,6 +36,7 @@ If there is an error, you can check what the error is in the log.
 
 First, input the address you want to write memory at in the "address" text box. Be sure there is a dollar before the address! 
   > Example: $DEADBEEF
+  
 Then select the type of the value you want to write. If it's a string, specify the length of the string you want to write in the textbox next to the "string" radiobutton.
 Then, input the value you want to write into the "value" textbox.
 Finally, just click the "write" button. If there is no error, "ok" will be displayed in the response textbox. If there is an error, the error code will be displayed in the response box.
@@ -58,6 +60,7 @@ Finally, just click the "write" button. If there is no error, "ok" will be displ
  Whenever an error occurs, it will be displayed as a number.
  If you want more info about the error, use this the "net helpmsg" command in the command prompt (aka cmd.exe).
    > Example: net helpmsg 123
+   
  Here are a list of the most common errors and a possible cause:
  * Error 5: Access denied: usually that means the process you're injected into doesnt own a handle of the target process and dosent have to rights to open it. Try with a different process.
  * Error 299 or 998: usually that means the memory zone you're reading isnt accessible.
