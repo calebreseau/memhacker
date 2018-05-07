@@ -43,6 +43,15 @@ type
 
   pdata=^tdata;
 
+const
+  cmd_NONE=0;
+  cmd_WRITE=1;
+  cmd_READ=2;
+  cmd_GETHANDLE=3;
+  cmd_SEARCH=4;
+  cmd_RESEARCH=5;
+  cmd_GETBASEADDR=6;
+
 var
   fh:thandle;
   write:boolean;

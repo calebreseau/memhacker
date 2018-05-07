@@ -18,8 +18,10 @@ end;
 procedure _main;
 var
   satick:dword;
+  tmpstr:string;
+  i:integer;
 begin
-    if not stillalive then exit;
+  if not stillalive then exit;
   if not tw_init_cl then
   begin
        sysmsgbox('couldnt init communication, exiting');
@@ -46,7 +48,7 @@ begin
     if tdata(data^).cmd<>0 then
     begin
        //sysmsgbox('cmd '+inttostr(tdata(data^).cmd)); debug
-       if tdata(data^).cmd=2 then
+       if tdata(data^).cmd=cmd_READ then
        begin
           log('received cmd READ');
           log('Target PID: '+inttostr(tdata(data^).pid));
@@ -57,22 +59,42 @@ begin
           log(#13#10'///'#13#10);
        end;
        //
-       if tdata(data^).cmd=1 then
+       if tdata(data^).cmd=cmd_WRITE then
        begin
           log('received cmd WRITE');
           log('Target PID: '+inttostr(tdata(data^).pid));
-          log('Value: '+tdata(data^).value);
+          if tdata(data^).valuetype<>vt_bytearray then
+            log('Value: '+tdata(data^).searchdata.value)
+          else
+          begin
+            tmpstr:='Array:';
+            for i:=1 to tdata(data^).valuelength do
+            begin
+              tmpstr+=' $'+inttohex(ord(tdata(data^).value[i]),2);
+            end;
+            log(tmpstr);
+          end;
           log('Value type: '+inttostr(tdata(data^).valuetype));
           log('Value length: '+inttostr(tdata(data^).valuelength));
           log('Address: 0x'+inttohex(tdata(data^).addr,8));
           tdata(data^).response:=writemem(tdata(data^).pid,tdata(data^).addr,tdata(data^).valuetype,tdata(data^).value,tdata(data^).valuelength);
           log(#13#10'///'#13#10);
        end;
-       if tdata(data^).cmd=4 then
+       if tdata(data^).cmd=cmd_SEARCH then
        begin
           log('received cmd SEARCH');
           log('Target PID: '+inttostr(tdata(data^).pid));
-          log('Value: '+tdata(data^).searchdata.value);
+          if tdata(data^).searchdata.valuetype<>vt_bytearray then
+            log('Value: '+tdata(data^).searchdata.value)
+          else
+          begin
+            tmpstr:='Array:';
+            for i:=1 to tdata(data^).searchdata.valuelength do
+            begin
+              tmpstr+=' $'+inttohex(ord(tdata(data^).searchdata.value[i]),2);
+            end;
+            log(tmpstr);
+          end;
           log('Value type: '+inttostr(tdata(data^).searchdata.valuetype));
           log('Value length: '+inttostr(tdata(data^).searchdata.valuelength));
           log('Start address: '+inttostr(tdata(data^).searchdata.startaddr));
@@ -81,22 +103,42 @@ begin
           tdata(data^).response:=searchmem(tdata(data^).pid,tdata(data^).searchdata.value,tdata(data^).searchdata.valuetype,tdata(data^).searchdata.valuelength,tdata(data^).searchdata.startaddr,tdata(data^).searchdata.endaddr,tdata(data^).searchdata.advsearch);
           log(#13#10'///'#13#10);
        end;
-       if tdata(data^).cmd=5 then
+       if tdata(data^).cmd=cmd_RESEARCH then
        begin
           log('received cmd RESEARCH');
           log('Target PID: '+inttostr(tdata(data^).pid));
-          log('Value: '+tdata(data^).searchdata.value);
+          if tdata(data^).searchdata.valuetype<>vt_bytearray then
+            log('Value: '+tdata(data^).searchdata.value)
+          else
+          begin
+            tmpstr:='Array:';
+            for i:=1 to tdata(data^).searchdata.valuelength do
+            begin
+              tmpstr+=' $'+inttohex(ord(tdata(data^).searchdata.value[i]),2);
+            end;
+            log(tmpstr);
+          end;
           log('Value type: '+inttostr(tdata(data^).searchdata.valuetype));
           log('Value length: '+inttostr(tdata(data^).searchdata.valuelength));
           tdata(data^).response:=researchmem(tdata(data^).pid,tdata(data^).searchdata.value,tdata(data^).searchdata.valuetype,tdata(data^).searchdata.valuelength);
           log(#13#10'///'#13#10);
        end;
        //
-       if tdata(data^).cmd=3 then
+       if tdata(data^).cmd=cmd_GETHANDLE then
        begin
           log('received cmd GETHANDLE');
           log('Target PID: '+inttostr(tdata(data^).pid));
           tdata(data^).response:=inttohex(getsysprocesshandle(tdata(data^).pid),4);
+          log('Response: '+tdata(data^).response);
+          log(#13#10'///'#13#10);
+       end;
+
+       if tdata(data^).cmd=cmd_GETBASEADDR then
+       begin
+          log('received cmd GETBASEADDR');
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('Target process name: '+tdata(data^).value);
+          tdata(data^).response:=getbaseaddr(tdata(data^).pid,tdata(data^).value);
           log('Response: '+tdata(data^).response);
           log(#13#10'///'#13#10);
        end;

@@ -5,27 +5,81 @@ unit umem;
 interface
 
 uses
-  Classes, SysUtils,utalkiewalkie,ntdll,windows;
+  Classes, SysUtils,utalkiewalkie,ntdll,windows,jwapsapi,strutils;
 
+type
+  fixedstring=string[64];
 const
   vt_dword:dword=1;
   vt_qword:dword=2;
   vt_string:dword=3;
   vt_float:dword=4;
+  vt_bytearray:dword=5;
 
 var
   foo:integer;
   function researchmem(pid:dword;value:string;valuetype:dword;vlength:dword):string;
   function readmem(pid:dword;addr:qword;valuetype:dword;vlength:ptruint):string;
-  function writemem(pid:dword;addr:qword;valuetype:dword;value:string;vlength:ptruint):string;
-  function searchmem(pid:dword;value:string;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
+  function writemem(pid:dword;addr:qword;valuetype:dword;value:fixedstring;vlength:ptruint):string;
+  function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
+  function getbaseaddr(pid:dword; MName: String): string;
 
 implementation
 
+function ByteToHex(InByte:byte):shortstring;
+const Digits:array[0..15] of char='0123456789ABCDEF';
+begin
+ result:=digits[InByte shr 4]+digits[InByte and $0F];
+end;
 
+function getbaseaddr(pid:dword; MName: String): string;
+var
+  Modules         : Array of HMODULE;
+  cbNeeded, i     : Cardinal;
+  ModuleInfo      : TModuleInfo;
+  ModuleName      : Array[0..MAX_PATH] of Char;
+  target:thandle;
+  alreadyopened:boolean;
+begin
+  log('enter getbaseaddr');
+  Result := '';
+  SetLength(Modules, 1024);
+  alreadyopened:=true;
+  target:=getsysprocesshandle(pid);
+  if target<1 then
+  begin
+     log('didnt find handle, opening process');
+     target:=openprocess(process_vm_read or process_vm_operation or PROCESS_QUERY_INFORMATION,false,pid);
+     alreadyopened:=false;
+     log('openprocess handle: '+inttohex(target,4));
+  end
+  else  log('found handle: '+inttohex(target,4));
+  if target<1 then
+  begin
+     log('error opening process: '+inttostr(getlasterror)+', exiting');
+     result:='';
+     exit;
+  end;
+  if (target <> 0) then
+  begin
+    EnumProcessModules(target, @Modules[0], 1024 * SizeOf(HMODULE), cbNeeded); //Getting the enumeration of modules
+    SetLength(Modules, cbNeeded div SizeOf(HMODULE)); //Setting the number of modules
+    for i := 0 to Length(Modules) - 1 do //Start the loop
+    begin
+      GetModuleBaseName(target, Modules[i], ModuleName, SizeOf(ModuleName)); //Getting the name of module
+      if AnsiCompareText(MName, ModuleName) = 0 then //If the module name matches with the name of module we are looking for...
+      begin
+        GetModuleInformation(target, Modules[i], ModuleInfo, SizeOf(ModuleInfo)); //Get the information of module
+        Result := '$'+inttohex(qword(ModuleInfo.lpBaseOfDll),16); //Return the information we want (The image base address)
+        break;
+      end;
+    end;
+  end;
+  if not alreadyopened then closehandle(target);
+end;
 function researchmem(pid:dword;value:string;valuetype:dword;vlength:dword):string;
 var
-  buf:array[0..254] of byte;
+  buf:array[0..63] of byte;
   bytesread:ptruint;
   target:thandle;
   resp:string;
@@ -35,7 +89,8 @@ var
   readvalue:string;
 begin
   log('Enter researchmem');
-  fillchar(buf,255,0);
+  fillchar(readvalue,64,0);
+  fillchar(buf,64,0);
   alreadyopened:=true;
   target:=getsysprocesshandle(pid);
   if target<1 then
@@ -76,6 +131,11 @@ begin
             if valuetype=vt_qword then readvalue:=inttostr(qword((@buf)^));
             if valuetype=vt_float then readvalue:=floattostr(single((@buf)^));
             if valuetype=vt_string then readvalue:=string((@buf)^);
+            if valuetype=vt_bytearray then
+            begin
+              readvalue:=value;
+              copymemory(@(readvalue[1]),@buf,vlength);
+            end;
             if value=readvalue then
             begin
               addsaddr(stringreplace(searchdata.retaddrs[i],'$','',[rfreplaceall,rfignorecase]));
@@ -94,23 +154,24 @@ begin
   if not alreadyopened then closehandle(target);
   log('leaving researchmem');
 end;
-function searchmem(pid:dword;value:string;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
+function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
 var
   target:thandle;
   MemInfo: MEMORY_BASIC_INFORMATION;
   MemStart: pointer;
   i:qword;
-  buf:array[0..254] of byte;
+  buf:array[0..63] of byte;
   bytesread:ptruint;
   ret:ptruint;
   tmp:string;
-  readvalue:string;
+  readvalue:fixedstring;
   j:integer;
   errcount:integer;
   meminfos:array of memory_basic_information;
   alreadyopened:boolean;
 begin
-    fillchar(buf,255,0);
+    fillchar(readvalue,64,0);
+    fillchar(buf,64,0);
     alreadyopened:=true;
     setlength(meminfos,0);
     errcount:=0;
@@ -178,6 +239,11 @@ begin
                if valuetype=vt_qword then readvalue:=inttostr(qword((@buf)^));
                if valuetype=vt_float then readvalue:=floattostr(single((@buf)^));
                if valuetype=vt_string then readvalue:=string((@buf)^);
+               if valuetype=vt_bytearray then
+               begin
+                 readvalue:=value;
+                 copymemory(@(readvalue[1]),@buf,vlength);
+               end;
                if value=readvalue then
                begin
                    tmp:=inttohex(qword(meminfos[j].baseaddress)+i,16);
@@ -206,7 +272,9 @@ var
   bytesread:ptruint;
   target:thandle;
   alreadyopened:boolean;
+  i:integer;
 begin
+  result:='';
   fillchar(buf,255,0);
   alreadyopened:=true;
   log('Enter readmem');
@@ -225,27 +293,48 @@ begin
      result:='';
      exit;
   end;
-  if readprocessmemory(target,pointer(addr),@buf,vlength,bytesread) then
+  if valuetype=vt_bytearray then
   begin
-       log('rpm ok, '+inttostr(bytesread)+' bytes read');
-       if valuetype=vt_dword then result:=inttostr(dword((@buf)^));
-       if valuetype=vt_qword then result:=inttostr(qword((@buf)^));
-       if valuetype=vt_float then result:=floattostr(single((@buf)^));
-       if valuetype=vt_string then result:=string((@buf)^);
-       log('result: '+result);
+    if readprocessmemory(target,pointer(addr),@buf,vlength,bytesread) then
+    begin
+      log('rpm ok, '+inttostr(bytesread)+' bytes read');
+      for i:=0 to vlength-1 do
+      begin
+        result+='$'+bytetohex(buf[i]);
+        if i<vlength-1 then result+=' ';
+      end;
+      log('result: '+result);
+    end
+    else log('error rpm: '+inttostr(getlasterror));
   end
-  else log('error rpm: '+inttostr(getlasterror));
+  else
+  begin
+    if readprocessmemory(target,pointer(addr),@buf,vlength,bytesread) then
+    begin
+         log('rpm ok, '+inttostr(bytesread)+' bytes read');
+         if valuetype=vt_dword then result:=inttostr(dword((@buf)^));
+         if valuetype=vt_qword then result:=inttostr(qword((@buf)^));
+         if valuetype=vt_float then result:=floattostr(single((@buf)^));
+         if valuetype=vt_string then result:=string((@buf)^);
+         log('result: '+result);
+    end
+    else log('error rpm: '+inttostr(getlasterror));
+  end;
   if not alreadyopened then closehandle(target);
   log('exit readmem');
 end;
 
-function writemem(pid:dword;addr:qword;valuetype:dword;value:string;vlength:ptruint):string;
+function writemem(pid:dword;addr:qword;valuetype:dword;value:fixedstring;vlength:ptruint):string;
 var
+  i:integer;
   buf:array[0..254] of byte;
   byteswritten:ptruint;
   target:thandle;
   alreadyopened:boolean;
+  tmpstr:string;
 begin
+  //log(tmpstr);
+  //log(value);
   fillchar(buf,255,0);
   alreadyopened:=true;
   log('Enter writemem');
@@ -264,10 +353,18 @@ begin
      result:='';
      exit;
   end;
+  log('handle ok');
   if valuetype=vt_dword then move(strtoint(value),buf,vlength);
   if valuetype=vt_qword then move(strtoint64(value),buf,vlength);
   if valuetype=vt_float then move(strtoint(value),buf,vlength);
   if valuetype=vt_string then move(value,buf,vlength);
+  if valuetype=vt_bytearray then
+  begin
+    for i:=1 to tdata(data^).valuelength do
+    begin
+      buf[i-1]:=byte(ord(tdata(data^).value[i]));
+    end;
+  end;
   if writeprocessmemory(target,pointer(addr),@buf,vlength,byteswritten) then
   begin
        log('wpm ok, '+inttostr(byteswritten)+' bytes written');

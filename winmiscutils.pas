@@ -46,6 +46,8 @@ type
 
 implementation
 
+
+
 function logtofile(text,path:string):dword;
 var
   str:tstringlist;

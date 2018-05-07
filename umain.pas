@@ -7,7 +7,7 @@ interface
 uses 
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls,
   ExtCtrls, wininjection, winmiscutils, utalkiewalkie, ntdll, windows, umem,
-  lclintf, Menus, ComCtrls;
+  lclintf, Menus, ComCtrls, strutils;
 
 type
 
@@ -33,6 +33,7 @@ type
     btnresearch: TButton;
     btnclearlog: TButton;
     btnstopsearch: TButton;
+    btnbaseaddr: TButton;
     chkbottom: TCheckBox;
     chkadvsearch: TCheckBox;
     grpsearch: TGroupBox;
@@ -42,6 +43,8 @@ type
     lblwebsite: TLabel;
     lstaddrs: TListBox;
     pgbsearch: TProgressBar;
+    rbsarray: TRadioButton;
+    rbarray: TRadioButton;
     txtsstart: TLabeledEdit;
     lbllength: TLabel;
     lblslength: TLabel;
@@ -65,6 +68,7 @@ type
     txtaddr: TLabeledEdit;
     lblpname: TLabel;
     txtprocess: TComboBox;
+    procedure btnbaseaddrClick(Sender: TObject);
     procedure btnclearlogClick(Sender: TObject);
     procedure btnhandleClick(Sender: TObject);
     procedure btnreadClick(Sender: TObject);
@@ -101,6 +105,16 @@ implementation
 {$R *.lfm}
 
 { Tfrmmain }
+
+function strsplit(Input: string; const Delimiter: Char):TStrings;
+begin
+    result:=tstringlist.Create;
+   Assert(Assigned(result));
+   //result.Clear;
+   result.StrictDelimiter := true;
+   result.Delimiter := Delimiter;
+   result.DelimitedText := Input;
+end;
 
 procedure init_inject;
 var
@@ -317,8 +331,13 @@ end;
 procedure Tfrmmain.btnwriteClick(Sender: TObject);
 var
   adata:tdata;
+  tmparray:array[0..1023] of byte;
+  bytes:tstrings;
+  i:integer;
 begin
-  adata.value:=txtvalue.text;
+  bytes:=tstringlist.create;
+  fillchar(tmparray,1024,0);
+  if rbarray.checked=false then adata.value:=txtvalue.text;
   if rbstring.checked then
   begin
        adata.valuetype:=vt_string;
@@ -327,21 +346,35 @@ begin
   if rbdword.checked then
   begin
        adata.valuetype:=vt_dword;
-       adata.valuelength:=4;
+       adata.valuelength:=sizeof(dword);
   end;
   if rbqword.checked then
   begin
        adata.valuetype:=vt_qword;
-       adata.valuelength:=8;
+       adata.valuelength:=sizeof(qword);
   end;
   if rbfloat.checked then
   begin
        adata.value:=inttostr(round(strtofloat(txtvalue.text)));
        adata.valuetype:=vt_float;
-       adata.valuelength:=4;
+       adata.valuelength:=sizeof(single);
+  end;
+  if rbarray.checked then
+  begin
+       adata.valuelength:=strtoint64(txtlength.text);
+       adata.valuetype:=vt_bytearray;
+       bytes:=strsplit(txtvalue.text,' ');
+       for i:=0 to bytes.Count-1 do
+       begin
+         if (ansicontainsstr(bytes[i],'$')) and (length(bytes[i])=3) then
+         begin
+           tmparray[i]:=strtoint(bytes[i]);
+         end else tmparray[i]:=$00;
+       end;
+       copymemory(@(adata.value[1]),@tmparray,adata.valuelength);
   end;
   adata.addr:=strtoint64(txtaddr.text);
-  adata.cmd:=1;
+  adata.cmd:=cmd_WRITE;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
@@ -376,11 +409,28 @@ begin
 end;
 
 procedure Tfrmmain.btnresearchClick(Sender: TObject);
+var
+  tmparray:array[0..1023] of byte;
+  bytes:tstrings;
+  i:integer;
 begin
     tdata(data^).searchdata.stop:=false;
-    tdata(data^).searchdata.value:=txtsvalue.text;
+    if tdata(data^).searchdata.valuetype=vt_bytearray then
+    begin
+       tdata(data^).searchdata.valuelength:=strtoint64(txtlength.text);
+       tdata(data^).searchdata.valuetype:=vt_bytearray;
+       bytes:=strsplit(txtvalue.text,' ');
+       for i:=0 to bytes.Count-1 do
+       begin
+         if (ansicontainsstr(bytes[i],'$')) and (length(bytes[i])=3) then
+         begin
+           tmparray[i]:=strtoint(bytes[i]);
+         end else tmparray[i]:=$00;
+       end;
+       copymemory(@(tdata(data^).searchdata.value[1]),@tmparray,tdata(data^).searchdata.valuelength);
+    end else tdata(data^).searchdata.value:=txtsvalue.text;
     tdata(data^).searchdata.pgcurr:=0;
-    tdata(data^).cmd:=5;
+    tdata(data^).cmd:=cmd_RESEARCH;
 end;
 
 procedure Tfrmmain.btnsavelogClick(Sender: TObject);
@@ -401,7 +451,14 @@ procedure Tfrmmain.btnsearchClick(Sender: TObject);
 var
   adata:tdata;
   asearchdata:tsearchdata;
+  tmparray:array[0..1023] of byte;
+  bytes:tstrings;
+  i:integer;
 begin
+  adata:=tdata(data^);
+  bytes:=tstringlist.create;
+  fillchar(tmparray,1024,0);
+  if rbsarray.checked=false then adata.value:=txtvalue.text;
   asearchdata.stop:=false;
   asearchdata.value:=txtsvalue.text;
   asearchdata.pgcurr:=0;
@@ -413,17 +470,31 @@ begin
   if rbsdword.checked then
   begin
        asearchdata.valuetype:=vt_dword;
-       asearchdata.valuelength:=4;
+       asearchdata.valuelength:=sizeof(dword);
   end;
   if rbsqword.checked then
   begin
        asearchdata.valuetype:=vt_qword;
-       asearchdata.valuelength:=8;
+       asearchdata.valuelength:=sizeof(qword);
   end;
   if rbsfloat.checked then
   begin
        asearchdata.valuetype:=vt_float;
-       asearchdata.valuelength:=4;
+       asearchdata.valuelength:=sizeof(single);
+  end;
+  if rbarray.checked then
+  begin
+       asearchdata.valuelength:=strtoint64(txtslength.text);
+       asearchdata.valuetype:=vt_bytearray;
+       bytes:=strsplit(txtsvalue.text,' ');
+       for i:=0 to bytes.Count-1 do
+       begin
+         if (ansicontainsstr(bytes[i],'$')) and (length(bytes[i])=3) then
+         begin
+           tmparray[i]:=strtoint(bytes[i]);
+         end else tmparray[i]:=$00;
+       end;
+       copymemory(@(asearchdata.value[1]),@tmparray,asearchdata.valuelength);
   end;
   asearchdata.advsearch:=chkadvsearch.checked;
   asearchdata.startaddr:=strtoint64(txtsstart.text);
@@ -431,7 +502,7 @@ begin
     asearchdata.endaddr:=strtoint64(txtsend.text)
     else asearchdata.endaddr:=9223372036854775807;
   adata.searchdata:=asearchdata;
-  adata.cmd:=4;
+  adata.cmd:=cmd_SEARCH;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   writedata(adata);
 end;
@@ -452,21 +523,26 @@ begin
   end;
   if rbdword.checked then
   begin
-       adata.valuelength:=4;
+       adata.valuelength:=sizeof(dword);
        adata.valuetype:=vt_dword;
   end;
   if rbqword.checked then
   begin
-       adata.valuelength:=8;
+       adata.valuelength:=sizeof(qword);
        adata.valuetype:=vt_qword;
   end;
   if rbfloat.checked then
   begin
-       adata.valuelength:=4;
+       adata.valuelength:=sizeof(single);
        adata.valuetype:=vt_float;
   end;
+  if rbarray.checked then
+  begin
+       adata.valuelength:=strtoint64(txtlength.text);
+       adata.valuetype:=vt_bytearray;
+  end;
   adata.addr:=strtoint64(txtaddr.text);
-  adata.cmd:=2;
+  adata.cmd:=cmd_READ;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
@@ -477,7 +553,7 @@ procedure Tfrmmain.btnhandleClick(Sender: TObject);
 var
   adata:tdata;
 begin
-  adata.cmd:=3;
+  adata.cmd:=cmd_GETHANDLE;
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
@@ -489,6 +565,18 @@ begin
   if tdata(data^).cmd<>0 then exit;
   tdata(data^)._log.index:=0;
   fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
+end;
+
+procedure Tfrmmain.btnbaseaddrClick(Sender: TObject);
+var
+  adata:tdata;
+begin
+  adata.cmd:=cmd_GETBASEADDR;
+  adata.pid:=getpidbyprocessname(txtprocess.text);
+  adata.value:=txtprocess.text;
+  adata.searchdata:=tdata(data^).searchdata;
+  adata._log:=tdata(data^)._log;
+  writedata(adata);
 end;
 
 end.

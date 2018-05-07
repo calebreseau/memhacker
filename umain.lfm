@@ -2,12 +2,12 @@ object frmmain: Tfrmmain
   Left = 295
   Height = 689
   Top = 12
-  Width = 654
+  Width = 644
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'memhacker v0.5 by cal_'
+  Caption = 'memhacker v0.6 by cal_'
   ClientHeight = 689
-  ClientWidth = 654
+  ClientWidth = 644
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   LCLVersion = '1.8.2.0'
@@ -122,7 +122,7 @@ object frmmain: Tfrmmain
       object rbqword: TRadioButton
         Left = 16
         Height = 19
-        Top = 40
+        Top = 32
         Width = 64
         Caption = 'QWORD'
         TabOrder = 0
@@ -130,15 +130,15 @@ object frmmain: Tfrmmain
       object rbfloat: TRadioButton
         Left = 16
         Height = 19
-        Top = 72
-        Width = 46
-        Caption = 'Float'
+        Top = 56
+        Width = 52
+        Caption = 'Single'
         TabOrder = 1
       end
       object rbstring: TRadioButton
-        Left = 16
+        Left = 17
         Height = 19
-        Top = 104
+        Top = 80
         Width = 51
         Caption = 'String'
         TabOrder = 2
@@ -151,7 +151,7 @@ object frmmain: Tfrmmain
         NumbersOnly = True
         OnChange = txtlengthChange
         TabOrder = 4
-        Text = '0'
+        Text = '1'
       end
       object lbllength: TLabel
         Left = 16
@@ -160,6 +160,14 @@ object frmmain: Tfrmmain
         Width = 37
         Caption = 'Length'
         ParentColor = False
+      end
+      object rbarray: TRadioButton
+        Left = 17
+        Height = 19
+        Top = 104
+        Width = 72
+        Caption = 'Byte array'
+        TabOrder = 5
       end
     end
     object txtresp: TLabeledEdit
@@ -184,10 +192,19 @@ object frmmain: Tfrmmain
       Left = 16
       Height = 25
       Top = 224
-      Width = 248
+      Width = 120
       Caption = 'Get LSASS handle'
       OnClick = btnhandleClick
       TabOrder = 6
+    end
+    object btnbaseaddr: TButton
+      Left = 144
+      Height = 25
+      Top = 224
+      Width = 120
+      Caption = 'Get base address'
+      OnClick = btnbaseaddrClick
+      TabOrder = 7
     end
   end
   object btnlog: TButton
@@ -268,11 +285,11 @@ object frmmain: Tfrmmain
     end
     object grpsvtype: TGroupBox
       Left = 216
-      Height = 128
-      Top = 8
+      Height = 144
+      Top = 0
       Width = 96
       Caption = 'Value type'
-      ClientHeight = 108
+      ClientHeight = 124
       ClientWidth = 92
       TabOrder = 1
       object rbsdword: TRadioButton
@@ -297,8 +314,8 @@ object frmmain: Tfrmmain
         Left = 8
         Height = 19
         Top = 40
-        Width = 46
-        Caption = 'Float'
+        Width = 52
+        Caption = 'Single'
         TabOrder = 1
       end
       object rbsstring: TRadioButton
@@ -312,26 +329,34 @@ object frmmain: Tfrmmain
       object txtslength: TEdit
         Left = 56
         Height = 23
-        Top = 80
+        Top = 96
         Width = 31
         NumbersOnly = True
         OnChange = txtlengthChange
         TabOrder = 4
-        Text = '0'
+        Text = '1'
       end
       object lblslength: TLabel
         Left = 8
         Height = 15
-        Top = 80
+        Top = 100
         Width = 37
         Caption = 'Length'
         ParentColor = False
+      end
+      object rbsarray: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 80
+        Width = 72
+        Caption = 'Byte array'
+        TabOrder = 5
       end
     end
     object txtsstart: TLabeledEdit
       Left = 216
       Height = 23
-      Top = 206
+      Top = 212
       Width = 96
       EditLabel.AnchorSideLeft.Control = txtsstart
       EditLabel.AnchorSideRight.Control = txtsstart
@@ -339,7 +364,7 @@ object frmmain: Tfrmmain
       EditLabel.AnchorSideBottom.Control = txtsstart
       EditLabel.Left = 216
       EditLabel.Height = 15
-      EditLabel.Top = 188
+      EditLabel.Top = 194
       EditLabel.Width = 96
       EditLabel.Caption = 'Start address'
       EditLabel.ParentColor = False
@@ -349,7 +374,7 @@ object frmmain: Tfrmmain
     object txtsend: TLabeledEdit
       Left = 216
       Height = 23
-      Top = 252
+      Top = 257
       Width = 96
       EditLabel.AnchorSideLeft.Control = txtsend
       EditLabel.AnchorSideRight.Control = txtsend
@@ -357,7 +382,7 @@ object frmmain: Tfrmmain
       EditLabel.AnchorSideBottom.Control = txtsend
       EditLabel.Left = 216
       EditLabel.Height = 15
-      EditLabel.Top = 234
+      EditLabel.Top = 239
       EditLabel.Width = 96
       EditLabel.Caption = 'End address'
       EditLabel.ParentColor = False
@@ -379,7 +404,7 @@ object frmmain: Tfrmmain
     object txtsvalue: TLabeledEdit
       Left = 216
       Height = 23
-      Top = 160
+      Top = 168
       Width = 96
       EditLabel.AnchorSideLeft.Control = txtsvalue
       EditLabel.AnchorSideRight.Control = txtsvalue
@@ -387,7 +412,7 @@ object frmmain: Tfrmmain
       EditLabel.AnchorSideBottom.Control = txtsvalue
       EditLabel.Left = 216
       EditLabel.Height = 15
-      EditLabel.Top = 142
+      EditLabel.Top = 150
       EditLabel.Width = 96
       EditLabel.Caption = 'Value'
       EditLabel.ParentColor = False
