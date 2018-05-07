@@ -31,6 +31,7 @@ First, input the address you want to read memory at in the "address" text box. B
 Then select the type of the value you want to read. If it's a string, specify the length of the string you want to read in the textbox next to the "string" radiobutton.
 If the value type is byte array, you gotta input the bytes in hex, just like addresses.
   > Example: $E3 $DD $F4 $12 $DE $AD
+  
 After that, just click the read button, and if there is no error, the value will display in the "response" textbox.
 If there is an error, you can check what the error is in the log.
 
@@ -43,6 +44,7 @@ Then select the type of the value you want to write. If it's a string, specify t
 Then, input the value you want to write into the "value" textbox.
 If the value type is byte array, you gotta input the bytes in hex, just like addresses.
   > Example: $E3 $DD $F4 $12 $DE $AD
+  
 Finally, just click the "write" button. If there is no error, "ok" will be displayed in the response textbox. If there is an error, the error code will be displayed in the response box.
 
  ## Searching
@@ -50,6 +52,7 @@ Finally, just click the "write" button. If there is no error, "ok" will be displ
  First, choose the value type like reading and writing, and input the value you want to search in the "value" textbox.
  If the value type is byte array, you gotta input the bytes in hex, just like addresses.
   > Example: $E3 $DD $F4 $12 $DE $AD
+  
  Then choose if you want to do a new search (search all memory) or to search in previous values.
  If you check "advanced check" memhacker will search all the addresses, 1 per 1. If you dont, the step will be the length of the value you chose.
  If you click an address, it will read the value.
