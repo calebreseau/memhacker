@@ -5,34 +5,46 @@ unit wininjection;
 interface
  
 uses
-  Classes, SysUtils,windows,winmiscutils,ntdll;
+  Classes, SysUtils,windows,winmiscutils,utalkiewalkie,ntdll;
 
 
   function injectsys(ahandle:thandle;susp:boolean;th:thandle;ch:client_id;dll:string):dword;
   function injectctx(hprocess, hthread: thandle; dll: string): boolean;
-  function injectapc( hprocess,hthread:thandle;dll:string):boolean;
+  function injectapc( hprocess,hthread:thandle;dllpath:string):boolean;
 
 implementation
 
 
 
-function injectapc( hprocess,hthread:thandle;dll:string):boolean;
+function injectapc( hprocess,hthread:thandle;dllpath:string):boolean;
 var
     lpDllAddr,lploadLibraryAddr:pointer;
-    byteswritten:nativeuint;
+    byteswritten:ptruint;
+    dll:string;
 begin
+   log('enter injectapc');
+   dll:=dllpath+#0;
+   log('dll: '+dllpath);
+   result:=false;
     //memory address for dll
     lpDllAddr := VirtualAllocEx(hProcess, nil, length(dll), MEM_COMMIT or MEM_RESERVE, PAGE_READWRITE);
-    WriteProcessMemory(hProcess, lpDllAddr, @dll[1], length(dll), byteswritten); // write dll path
-    if byteswritten =0 then exit;
-    OutputDebugString(pchar('lpDllAddr:'+inttohex(nativeuint(lpDllAddr),8)+' '+inttostr(byteswritten )+' written'));
+    log('lpDllAddr:'+inttohex(nativeuint(lpDllAddr),8));
+    if WriteProcessMemory(hProcess, lpDllAddr, @dll[1], length(dll), byteswritten) then
+      log('WPM OK, '+inttostr(byteswritten )+' bytes written')
+    else
+    begin
+      log('WPM Error '+inttostr(getlasterror)+', '+inttostr(byteswritten )+' bytes written, exiting');
+      exit;
+    end;
     //memory address of loadlibrary
     lploadLibraryAddr := GetProcAddress(GetModuleHandle('kernel32.dll'), 'LoadLibraryA');
-    OutputDebugString(pchar('loadLibraryAddress:'+inttohex(nativeuint(lploadLibraryAddr),8)));
+    log('loadLibraryAddress:'+inttohex(nativeuint(lploadLibraryAddr),8));
     //
-    if QueueUserAPC(GetProcAddress(LoadLibraryA('kernel32.dll'), 'LoadLibraryA'), hThread, nativeuint(lpDllAddr))=0
+    setlasterror(0);
+    if QueueUserAPC(lploadLibraryAddr, hThread, ulong_ptr(lpdlladdr))=0
        then result:=false
        else result:=true;
+    log('Last error: '+inttostr(getlasterror));
 end;
 
 function injectctx(hprocess, hthread: thandle; dll: string): boolean;
@@ -68,47 +80,52 @@ var
   Storage: Pointer;
   i:byte;
   tmp:string;
+  lasterror:integer;
 begin
+  log('enter injectctx');
   result:=true;
-  if ntsuspendprocess(hprocess)=false then outputdebugstring(pchar('suspend failed: '+inttostr(getlasterror)));
   //memory address for dll
   lpDllAddr := VirtualAllocEx(hProcess, nil, length(dll), MEM_COMMIT, PAGE_READWRITE);
   if lpDllAddr = nil then
   begin
-       outputdebugstring(pchar('lpDllAddr is null:'+inttostr(getlasterror)));
+       log('lpDllAddr is null: error'+inttostr(getlasterror)+', exiting');
+       exit;
   end;
   WriteProcessMemory(hProcess, lpDllAddr, @dll[1], length(dll), byteswritten);
   // write dll path
-  if byteswritten <> length(dll) then
+  if (byteswritten <> length(dll)) then
   begin
-     outputdebugstring(pchar('WriteProcessMemory failed'));
+     log('WriteProcessMemory failed: written '+inttostr(byteswritten)+' bytes, error '+inttostr(getlasterror)+', exiting');
+     exit;
   end;
 
-  if byteswritten = 0 then exit;
   dwdlladdr := nativeuint(lpDllAddr);
-  OutputDebugString(PChar('lpDllAddr:' + inttohex(nativeuint(lpDllAddr), 8)));
+  log('DLL Path successfully written at $' + inttohex(nativeuint(lpDllAddr), 16));
   //memory address of code
   stub := VirtualAllocEx(hProcess, nil, length(codeX64_2 ), MEM_COMMIT,PAGE_EXECUTE_READWRITE);
   if stub = nil then
   begin
-       outputdebugstring(pchar('stub is null'));
+       log('error: couldnt allocate memory zone to write shellcode, error '+inttostr(getlasterror)+', exiting');
        result:=false;
-  end;
-  OutputDebugString(PChar('stub:' + inttohex(nativeuint(stub), 8)));
+       exit;
+  end
+  else
+    log('successfully allocated mem for shellcode at $' + inttohex(nativeuint(stub), 16));
   //memory address of loadlibrary
   lploadLibraryAddr := GetProcAddress(GetModuleHandle('kernel32.dll'), 'LoadLibraryA');
   dwloadlibraryaddr := nativeuint(lploadLibraryAddr);
-  OutputDebugString(PChar('loadLibraryAddress:' + inttohex( nativeuint(lploadLibraryAddr), 8)));
+  log('LoadLibraryA Address:' + inttohex( nativeuint(lploadLibraryAddr), 16));
   ctx := AllocMemAlign(SizeOf(TContext), 16, Storage);
   ctx^.ContextFlags := CONTEXT_CONTROL;
   //
   if GetThreadContext(hThread, ctx^)=false then
   begin
-       outputdebugstring(pchar('GetThreadContext failed:'+inttostr(getlasterror)));
+       log('GetThreadContext failed:'+inttostr(getlasterror)+', exiting');
        result:=false;
+       exit;
   end;
   oldIP := ctx^.Rip;
-  OutputDebugString(PChar('oldip:' + inttohex(nativeuint(oldip), 8)));
+  log('Initial RIP:' + inttohex(nativeuint(oldip), 16));
   //RIP
   copymemory(@codeX64_2 [$34], @oldip, sizeof(nativeuint));
   //dwdlladdr
@@ -116,25 +133,41 @@ begin
   //dwloadlibraryaddr
   copymemory(@codeX64_2 [$1a], @dwloadlibraryaddr, sizeof(nativeuint));
   WriteProcessMemory(hProcess, stub, @codeX64_2[0], length(codeX64_2 ), byteswritten);
-  if byteswritten<>length(codeX64_2 ) then
+  if byteswritten<>length(codeX64_2) then
   begin
-     outputdebugstring(pchar('WriteProcessMemory failed'));
-     result:=false
+     log('WriteProcessMemory failed: written '+inttostr(byteswritten)+' bytes, error '+inttostr(getlasterror)+', exiting');
+     exit;
   end;
   // write code
-  if byteswritten = 0 then exit;
   ctx^.rip := nativeuint(stub);
+  setlasterror(0);
+  suspendthread(hthread);
+  lasterror:=getlasterror;
+  if lasterror=0 then
+    log('successfully suspended thread')
+  else
+  begin
+    log('suspend failed with error '+inttostr(lasterror)+', exiting');
+    exit;
+  end;
   if SetThreadContext(hThread, ctx^)=false then
   begin
-   outputdebugstring(pchar('SetThreadContext failed:'+inttostr(getlasterror)));
+   log('SetThreadContext failed:'+inttostr(getlasterror)+', exiting');
    result:=false;
-  end;
-   for i:=0 to length(codeX64_2 )-1 do tmp:=tmp+ (inttohex(codeX64_2[i],2)+' ');
-   if ntresumeprocess(hprocess)=false then
+   exit;
+  end
+  else log('SetThreadContext ok');
+   setlasterror(0);
+   resumethread(hthread);
+   lasterror:=getlasterror;
+   if lasterror<>0 then
    begin
-     outputdebugstring(pchar('resume failed: '+inttostr(getlasterror)));
+     log('resume failed: '+inttostr(lasterror)+', exiting');
      result:=false;
-   end;
+     exit;
+   end
+   else log('successfully resumed thread');
+   log('leaving injectctx');
   end;
 
 function injectsys(ahandle:thandle;susp:boolean;th:thandle;ch:client_id;dll:string):dword;
@@ -147,19 +180,20 @@ var
         status:int64;
         //buf:ansistring;
 begin
-     result:=0;
+        log('enter injectsys');
+       result:=0;
         status:=0;
         size:=length(dll)+sizeof(char);
 	last:=setprivilege('sedebugprivilege',true);
-        if last=false then outputdebugstring(pchar('error setprivilege'));
+        if last=false then log('error setprivilege');
 	loadlibrarypointer:=getprocaddress(getmodulehandle('kernel32.dll'),'LoadLibraryA');
         alloc:=nil;
         alloc:=VirtualAllocEx(ahandle, nil, size, MEM_RESERVE or MEM_COMMIT, PAGE_EXECUTE_READWRITE);
         if alloc=nil
-                    then outputdebugstring(pchar('VirtualAllocEx failed: '+inttostr(getlasterror)))
-                    else outputdebugstring(pchar('VirtualAllocEx:'+inttohex(dword(alloc),8)));
+                    then log('VirtualAllocEx failed: '+inttostr(getlasterror))
+                    else log('VirtualAllocEx:'+inttohex(dword(alloc),8));
         last:=writeprocessmemory(ahandle,alloc,@dll[1],size,byteswritten);
-        if last=false then outputdebugstring(pchar('error wpm'));
+        if last=false then log('error wpm');
 	status:=rtlcreateuserthread(ahandle,nil,susp,0,0,0,loadlibrarypointer,alloc,@th,@ch);
         result:=status;
         virtualfreeex(ahandle,alloc,size,mem_release);

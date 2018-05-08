@@ -8,6 +8,9 @@ uses
   Classes, SysUtils,windows,winmiscutils;
  
 type
+
+    fixedstring=string[255];
+
     tretaddrs=array[0..1023] of string[18];
     tsearchdata=record
       startaddr:qword;
@@ -28,16 +31,24 @@ type
       strings:array[0..1023] of string[255];
     end;
 
+    tprocessinfo=record
+      baseaddr:fixedstring;
+      maintid:dword;
+      pid:dword;
+      syshandle:thandle;
+    end;
+
     tdata=record
       cmd:dword;
       pid:dword;
       addr:qword;
       valuetype:dword;
       valuelength:ptruint;
-      value:string[64];
+      value:string[255];
       response:string[255];
       _log:tlog;
       searchdata:tsearchdata;
+      processinfos:tprocessinfo;
     end;
 
 
@@ -51,6 +62,8 @@ const
   cmd_SEARCH=4;
   cmd_RESEARCH=5;
   cmd_GETBASEADDR=6;
+  cmd_INJECT=7;
+  cmd_GETINFOS=8;
 
 var
   fh:thandle;
@@ -103,6 +116,7 @@ begin
      tdata(data^).response:='';
      tdata(data^).cmd:=0;
      fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
+     fillchar(tdata(data^).processinfos,sizeof(tprocessinfo),0);
      log('init log');
      tdata(data^)._log.index:=0;
      tdata(data^).searchdata.index:=0;

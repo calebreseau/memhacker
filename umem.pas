@@ -5,10 +5,9 @@ unit umem;
 interface
 
 uses
-  Classes, SysUtils,utalkiewalkie,ntdll,windows,jwapsapi,strutils;
+  Classes, SysUtils,utalkiewalkie,ntdll,windows,jwapsapi,strutils,wininjection,winmiscutils,uprocess;
 
-type
-  fixedstring=string[64];
+
 const
   vt_dword:dword=1;
   vt_qword:dword=2;
@@ -22,64 +21,14 @@ var
   function readmem(pid:dword;addr:qword;valuetype:dword;vlength:ptruint):string;
   function writemem(pid:dword;addr:qword;valuetype:dword;value:fixedstring;vlength:ptruint):string;
   function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
-  function getbaseaddr(pid:dword; MName: String): string;
 
 implementation
 
-function ByteToHex(InByte:byte):shortstring;
-const Digits:array[0..15] of char='0123456789ABCDEF';
-begin
- result:=digits[InByte shr 4]+digits[InByte and $0F];
-end;
 
-function getbaseaddr(pid:dword; MName: String): string;
-var
-  Modules         : Array of HMODULE;
-  cbNeeded, i     : Cardinal;
-  ModuleInfo      : TModuleInfo;
-  ModuleName      : Array[0..MAX_PATH] of Char;
-  target:thandle;
-  alreadyopened:boolean;
-begin
-  log('enter getbaseaddr');
-  Result := '';
-  SetLength(Modules, 1024);
-  alreadyopened:=true;
-  target:=getsysprocesshandle(pid);
-  if target<1 then
-  begin
-     log('didnt find handle, opening process');
-     target:=openprocess(process_vm_read or process_vm_operation or PROCESS_QUERY_INFORMATION,false,pid);
-     alreadyopened:=false;
-     log('openprocess handle: '+inttohex(target,4));
-  end
-  else  log('found handle: '+inttohex(target,4));
-  if target<1 then
-  begin
-     log('error opening process: '+inttostr(getlasterror)+', exiting');
-     result:='';
-     exit;
-  end;
-  if (target <> 0) then
-  begin
-    EnumProcessModules(target, @Modules[0], 1024 * SizeOf(HMODULE), cbNeeded); //Getting the enumeration of modules
-    SetLength(Modules, cbNeeded div SizeOf(HMODULE)); //Setting the number of modules
-    for i := 0 to Length(Modules) - 1 do //Start the loop
-    begin
-      GetModuleBaseName(target, Modules[i], ModuleName, SizeOf(ModuleName)); //Getting the name of module
-      if AnsiCompareText(MName, ModuleName) = 0 then //If the module name matches with the name of module we are looking for...
-      begin
-        GetModuleInformation(target, Modules[i], ModuleInfo, SizeOf(ModuleInfo)); //Get the information of module
-        Result := '$'+inttohex(qword(ModuleInfo.lpBaseOfDll),16); //Return the information we want (The image base address)
-        break;
-      end;
-    end;
-  end;
-  if not alreadyopened then closehandle(target);
-end;
+
 function researchmem(pid:dword;value:string;valuetype:dword;vlength:dword):string;
 var
-  buf:array[0..63] of byte;
+  buf:array[0..254] of byte;
   bytesread:ptruint;
   target:thandle;
   resp:string;
@@ -89,8 +38,8 @@ var
   readvalue:string;
 begin
   log('Enter researchmem');
-  fillchar(readvalue,64,0);
-  fillchar(buf,64,0);
+  fillchar(readvalue,sizeof(fixedstring),0);
+  fillchar(buf,sizeof(fixedstring),0);
   alreadyopened:=true;
   target:=getsysprocesshandle(pid);
   if target<1 then
@@ -160,7 +109,7 @@ var
   MemInfo: MEMORY_BASIC_INFORMATION;
   MemStart: pointer;
   i:qword;
-  buf:array[0..63] of byte;
+  buf:array[0..254] of byte;
   bytesread:ptruint;
   ret:ptruint;
   tmp:string;
@@ -170,8 +119,8 @@ var
   meminfos:array of memory_basic_information;
   alreadyopened:boolean;
 begin
-    fillchar(readvalue,64,0);
-    fillchar(buf,64,0);
+    fillchar(readvalue,sizeof(fixedstring),0);
+    fillchar(buf,sizeof(fixedstring),0);
     alreadyopened:=true;
     setlength(meminfos,0);
     errcount:=0;
@@ -275,7 +224,7 @@ var
   i:integer;
 begin
   result:='';
-  fillchar(buf,255,0);
+  fillchar(buf,sizeof(fixedstring),0);
   alreadyopened:=true;
   log('Enter readmem');
   target:=getsysprocesshandle(pid);
@@ -335,7 +284,7 @@ var
 begin
   //log(tmpstr);
   //log(value);
-  fillchar(buf,255,0);
+  fillchar(buf,sizeof(fixedstring),0);
   alreadyopened:=true;
   log('Enter writemem');
   target:=getsysprocesshandle(pid);

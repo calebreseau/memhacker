@@ -28,17 +28,25 @@ type
     btnwrite: TButton;
     btnread: TButton;
     btnrefresh: TButton;
-    btnhandle: TButton;
     btnlog: TButton;
     btnresearch: TButton;
     btnclearlog: TButton;
     btnstopsearch: TButton;
-    btnbaseaddr: TButton;
+    btnbrowse: TButton;
+    btninject: TButton;
+    btnrefreshinfos: TButton;
     chkbottom: TCheckBox;
     chkadvsearch: TCheckBox;
+    grpprocinfos: TGroupBox;
+    grpinjection: TGroupBox;
     grpsearch: TGroupBox;
     grplog: TGroupBox;
     grpsvtype: TGroupBox;
+    txtmaintid: TLabeledEdit;
+    txtPID: TLabeledEdit;
+    txtbaseaddr: TLabeledEdit;
+    txthandle: TLabeledEdit;
+    txtPath: TLabeledEdit;
     lbladdrcount: TLabel;
     lblwebsite: TLabel;
     lstaddrs: TListBox;
@@ -69,10 +77,13 @@ type
     lblpname: TLabel;
     txtprocess: TComboBox;
     procedure btnbaseaddrClick(Sender: TObject);
+    procedure btnbrowseClick(Sender: TObject);
     procedure btnclearlogClick(Sender: TObject);
     procedure btnhandleClick(Sender: TObject);
+    procedure btninjectClick(Sender: TObject);
     procedure btnreadClick(Sender: TObject);
     procedure btnrefreshClick(Sender: TObject);
+    procedure btnrefreshinfosClick(Sender: TObject);
     procedure btnresearchClick(Sender: TObject);
     procedure btnsavelogClick(Sender: TObject);
     procedure btnsearchClick(Sender: TObject);
@@ -90,6 +101,7 @@ type
     procedure mmlogChange(Sender: TObject);
     procedure txtaddrChange(Sender: TObject);
     procedure txtlengthChange(Sender: TObject);
+    procedure txtPIDChange(Sender: TObject);
     procedure txtprocessChange(Sender: TObject);
   private
 
@@ -162,6 +174,7 @@ var
      lastindex:integer;
      i:integer;
      strs:tstringlist;
+     lasterror:integer;
 begin
     strs:=tstringlist.create;
     lastindex:=0;
@@ -187,8 +200,13 @@ begin
             lastindex:=index;
           end;
         end;
+        frmmain.txtbaseaddr.text:=string(tdata(data^).processinfos.baseaddr);
+        frmmain.txthandle.text:='$'+inttohex(qword(tdata(data^).processinfos.syshandle),4);
+        frmmain.txtpid.text:=inttostr(tdata(data^).processinfos.pid);
+        frmmain.txtmaintid.text:=inttostr(tdata(data^).processinfos.maintid);
     except
-        showmessage('Error reading response: '+inttostr(getlasterror));
+        lasterror:=getlasterror;
+        if lasterror<>0 then showmessage('Error reading response: '+inttostr(lasterror));
     end;
   end;
 end;
@@ -323,6 +341,11 @@ begin
   if strtoint(txtlength.text)>16 then txtlength.text:='16';
 end;
 
+procedure Tfrmmain.txtPIDChange(Sender: TObject);
+begin
+
+end;
+
 procedure Tfrmmain.txtprocessChange(Sender: TObject);
 begin
 
@@ -378,6 +401,7 @@ begin
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
+  adata.processinfos:=tdata(data^).processinfos;
   writedata(adata);
 end;
 
@@ -406,6 +430,17 @@ begin
   for i:=0 to processes.Count-1 do txtprocess.Items.Add(processes[i]);
   processes.Free;
   if txtprocess.items.Count>0 then txtprocess.ItemIndex:=0;
+end;
+
+procedure Tfrmmain.btnrefreshinfosClick(Sender: TObject);
+var
+  adata:tdata;
+begin
+  adata._log:=tdata(data^)._log;
+  adata.searchdata:=tdata(data^).searchdata;
+  adata.value:=txtprocess.text;
+  adata.cmd:=cmd_GETINFOS;
+  writedata(adata);
 end;
 
 procedure Tfrmmain.btnresearchClick(Sender: TObject);
@@ -546,6 +581,7 @@ begin
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
+  adata.processinfos:=tdata(data^).processinfos;
   writedata(adata);
 end;
 
@@ -557,6 +593,25 @@ begin
   adata.pid:=getpidbyprocessname(txtprocess.text);
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
+  writedata(adata);
+end;
+
+procedure Tfrmmain.btninjectClick(Sender: TObject);
+var
+  adata:tdata;
+begin
+  if not fileexists(txtpath.text) then
+  begin
+    showmessage('DLL not found!');
+    exit;
+  end;
+  adata.cmd:=cmd_INJECT;
+  adata.pid:=getpidbyprocessname(txtprocess.text);
+  adata.value:=txtpath.text;
+  adata.valuelength:=length(txtpath.text);
+  adata.searchdata:=tdata(data^).searchdata;
+  adata._log:=tdata(data^)._log;
+  adata.processinfos:=tdata(data^).processinfos;
   writedata(adata);
 end;
 
@@ -577,6 +632,17 @@ begin
   adata.searchdata:=tdata(data^).searchdata;
   adata._log:=tdata(data^)._log;
   writedata(adata);
+end;
+
+procedure Tfrmmain.btnbrowseClick(Sender: TObject);
+var
+  dialog:topendialog;
+begin
+  dialog:=topendialog.create(frmmain);
+  dialog.DefaultExt:='.dll';
+  dialog.InitialDir:=getcurrentdir;
+  if dialog.execute then txtpath.text:=dialog.filename;
+  dialog.free;
 end;
 
 end.

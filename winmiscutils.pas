@@ -5,7 +5,7 @@ unit winmiscutils;
 interface
 
 uses
-  Classes, SysUtils,windows,jwatlhelp32,jwawintype; 
+  Classes, SysUtils,windows,jwatlhelp32,jwawintype;
 
 type
   TFNAPCProc = TFarProc;
@@ -32,7 +32,6 @@ type
   procedure enumprocesses(output:tstringlist);
   function SetPrivilege(privilegeName: string; enable: boolean): boolean;
   function AllocMemAlign(const ASize, AAlign: Cardinal; out AHolder: Pointer): Pointer;
-  function getmainthreadid(pid:dword64):dword;
   function QueueUserAPC(pfnAPC: TFNAPCProc; hThread: THandle; dwData: ULONG_PTR): DWORD; stdcall;external 'kernel32.dll' name 'QueueUserAPC';
   function OpenThread(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwThreadId: DWORD): THandle; external 'kernel32' name 'OpenThread';
   function getthreadinformation(hthread:thandle;thread_information_class:dword;output:pointer;size:dword):boolean;stdcall;external 'kernel32.dll' name 'GetThreadInformation';
@@ -43,6 +42,8 @@ type
   Timeout: DWORD; var pResponse: DWORD; bWait: BOOL): BOOL; stdcall; external 'Wtsapi32.dll' name 'WTSSendMessageA';
   function sysmsgbox(text:string):longword;
   function logtofile(text,path:string):dword;
+  function tryopenthread(pid:dword;access:dword;ignore:integer=0):thandle;
+  function ByteToHex(InByte:byte):shortstring;
 
 implementation
 
@@ -155,38 +156,44 @@ begin
     Result := Pointer(NativeUInt(AHolder) + (AAlign - Shift));
 end;
 
-function getmainthreadid(pid:dword64):dword;
-var
-  hThreadSnapshot:thandle;
-  currentpid:dword;
-  tentry:threadentry32;
-  _tid:thandle;
-  _creationtime,_exittime,_kerneltime,_usertime:windows.FILETIME;
-  ctime:ularge_integer;
-  _ctime:ularge_integer;
+function ByteToHex(InByte:byte):shortstring;
+const Digits:array[0..15] of char='0123456789ABCDEF';
 begin
-   ctime.LowPart:=0;
-   ctime.highPart:=0;
-   ctime.quadPart:=0;
-   hthreadsnapshot:=createtoolhelp32snapshot(th32CS_snapthread,pid);
-   tentry.dwSize:=sizeof(threadentry32);
-   result:=0;
-   currentpid:=getcurrentprocessid;
-   thread32first(hthreadsnapshot,tentry);
-   if tentry.th32OwnerProcessID=pid then
+ result:=digits[InByte shr 4]+digits[InByte and $0F];
+end;
+
+
+
+function tryopenthread(pid:dword;access:dword;ignore:integer=0):thandle;
+var
+  hthreadsnapshot:thandle;
+  tentry:threadentry32;
+  tmphandle:thandle;
+  i:integer;
+begin
+  i:=0;
+  result:=0;
+  hthreadsnapshot:=createtoolhelp32snapshot(th32CS_snapthread,pid);
+  tentry.dwSize:=sizeof(threadentry32);
+  thread32first(hthreadsnapshot,tentry);
+  i+=1;
+  if (tentry.th32OwnerProcessID=pid) and (i>ignore) then
    begin
-       result:=tentry.th32ThreadID;
-       exit
+       tmphandle:=openthread(access,false,tentry.th32ThreadID);
+       if tmphandle>1 then
+       begin
+         result:=tmphandle;
+       end;
    end;
-   while thread32next(hthreadsnapshot,tentry)=true do
+  while thread32next(hthreadsnapshot,tentry)=true do
    begin
-     if tentry.th32OwnerProcessID=pid then
+     if (tentry.th32OwnerProcessID=pid) and (i>ignore) then
      begin
-       _tid:=tentry.th32ThreadID;
-       getthreadtimes(_tid,_creationtime,_exittime,_kerneltime,_usertime);
-       _ctime.HighPart:=_creationtime.dwHighDateTime;
-       if _ctime.HighPart>ctime.HighPart then result:=_tid;
-       ctime:=_ctime;
+       tmphandle:=openthread(access,false,tentry.th32ThreadID);
+       if tmphandle>1 then
+       begin
+         result:=tmphandle;
+       end;
      end;
    end;
 end;

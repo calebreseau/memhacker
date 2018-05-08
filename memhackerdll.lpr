@@ -4,7 +4,7 @@ library memhackerdll;
  
 
 uses
-  Classes,utalkiewalkie,windows,sysutils,winmiscutils,ntdll,umem;
+  Classes,utalkiewalkie,windows,sysutils,winmiscutils,ntdll,umem,uprocess;
 
 function stillalive:boolean;
 var
@@ -141,6 +141,22 @@ begin
           tdata(data^).response:=getbaseaddr(tdata(data^).pid,tdata(data^).value);
           log('Response: '+tdata(data^).response);
           log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_INJECT then
+       begin
+          log('received cmd INJECT');
+          log('Target PID: '+inttostr(tdata(data^).pid));
+          log('DLL Path: '+tdata(data^).value);
+          tdata(data^).response:=dllinject(tdata(data^).pid,tdata(data^).value);
+          log('Response: '+tdata(data^).response);
+          log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_GETINFOS then
+       begin
+         log('received cmd GETINFOS');
+         log('Target processname: '+tdata(data^).value);
+         tdata(data^).processinfos:=getinfos(tdata(data^).value);
+         log(#13#10'///'#13#10);
        end;
        //sysmsgbox(resp);   debug
        tdata(data^).cmd:=0;

@@ -97,8 +97,8 @@ const
      StartParameter: pointer;
      ThreadHandle: PHANDLE;
      ClientID: PCLIENT_ID):ntstatus; stdcall;external 'ntdll.dll' name 'RtlCreateUserThread';
-  function getsysprocesshandle(pid:dword):thandle;
   function GetProcessId(Process: THandle): DWORD; stdcall; external 'kernel32.dll' name 'GetProcessId';
+  function GetObjectInfo(hObject:cardinal; objInfoClass:OBJECT_INFORMATION_CLASS):string;
 
 implementation
 
@@ -131,62 +131,7 @@ begin
 end;
 
 
-function getsysprocesshandle(pid:dword):thandle;
-var
-  handleinfosize:ulong;
-  handleinfo:psystem_handle_information;
-  status:ntstatus;
-  i:qword;
-  errcount:integer;
-  _handle:thandle;
-  _pid:dword;
-  _process:SYSTEM_HANDLE;
-  strtype:string;
-  currpid:dword;
-begin
-   currpid:=getcurrentprocessid;
-   result:=0;
-   handleinfosize:=DefaulBUFFERSIZE;
-   handleinfo:=virtualalloc(nil,size_t(handleinfosize),mem_commit,page_execute_readwrite);
-   status:=ntquerysysteminformation(systemhandleinformation,handleinfo,handleinfosize,nil);
-   while status=STATUS_INFO_LENGTH_MISMATCH do
-   begin
-     handleinfosize*=2;
-     if handleinfo<>nil then virtualfree(handleinfo,size_t(handleinfosize),mem_release);
-     setlasterror(0);
-     handleinfo:=virtualalloc(nil,size_t(handleinfosize),mem_commit,page_execute_readwrite);
-     status:=ntquerysysteminformation(systemhandleinformation,handleinfo,handleinfosize,nil);
-   end;
-   if not nt_success(status) then
-   begin
-       sysmsgbox('error getting handle: '+inttohex(status,8));
-       exit;
-   end;
-   errcount:=0;
-   for i:=0 to handleinfo^.uCount-1 do
-   begin
-     try
-       _process:=handleinfo^.handles[i];
-       _handle:=_process.handle;
-       if _handle>0 then strtype:=GetObjectInfo(_handle, ObjectTypeInformation);
-       if lowercase(strtype)='process' then
-       begin
-         _pid:=getprocessid(_handle);
-         if _process.uidprocess=currpid then
-         begin
-           if _pid=pid then
-           begin
-             result:=_handle;
-             break;
-           end;
-         end;
-       end;
-     except
-         errcount+=1;
-     end;
-   end;
-   if handleinfo<>nil then virtualfree(handleinfo,size_t(handleinfosize),mem_release);
-end;
+
 
 end.
 
