@@ -17,6 +17,7 @@ type
     btnstring: TButton;
     btnqword: TButton;
     btnsingle: TButton;
+    chknewvalue: TCheckBox;
     Memo1: TMemo;
     procedure btndwordClick(Sender: TObject);
     procedure btnqwordClick(Sender: TObject);
@@ -35,6 +36,7 @@ var
   totoqword:qword;
   totosingle:single;
   totostring:ansistring;
+  lastclicked:integer;
 
 implementation
 
@@ -44,7 +46,7 @@ implementation
 
 procedure TForm1.btndwordClick(Sender: TObject);
 begin
-  toto:=random(9999);
+  if chknewvalue.checked then toto:=random(9999);
   memo1.Lines.Clear ;
   memo1.Lines.Add(inttostr(toto));
   Memo1.Lines.Add('addr $'+inttohex(qword(addr(toto)),8));
@@ -53,7 +55,7 @@ end;
 
 procedure TForm1.btnqwordClick(Sender: TObject);
 begin
-  totoqword:=random(9999);
+  if chknewvalue.checked then totoqword:=random(9999);
   memo1.Lines.Clear ;
   memo1.Lines.Add(inttostr(totoqword));
   Memo1.Lines.Add('addr $'+inttohex(qword(addr(totoqword)),8));
@@ -62,7 +64,7 @@ end;
 
 procedure TForm1.btnsingleClick(Sender: TObject);
 begin
-  totosingle:=random(9999);
+  if chknewvalue.checked then totosingle:=random(9999);
   memo1.Lines.Clear ;
   memo1.Lines.Add(floattostr(totosingle));
   Memo1.Lines.Add('addr $'+inttohex(qword(addr(totosingle)),8));
@@ -71,11 +73,12 @@ end;
 
 procedure TForm1.btnstringClick(Sender: TObject);
 begin
-  totostring:=chr(random(94)+33)+chr(random(94)+33)+chr(random(94)+33)+chr(random(94)+33);
+  if chknewvalue.checked then totostring:=chr(random(94)+33)+chr(random(94)+33)+chr(random(94)+33)+chr(random(94)+33);
   memo1.Lines.Clear ;
   memo1.Lines.Add(totostring);
   Memo1.Lines.Add('addr $'+inttohex(qword(addr(totostring)),8));
   Memo1.Lines.Add('pointer $'+inttohex(qword(@totostring),8));
+  memo1.lines.add('str[2]='+totostring[2])
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
