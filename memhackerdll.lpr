@@ -64,7 +64,7 @@ begin
           log('received cmd WRITE');
           log('Target PID: '+inttostr(tdata(data^).pid));
           if tdata(data^).valuetype<>vt_bytearray then
-            log('Value: '+tdata(data^).searchdata.value)
+            log('Value: '+tdata(data^).value)
           else
           begin
             tmpstr:='Array:';
@@ -158,11 +158,68 @@ begin
          tdata(data^).processinfos:=getinfos(tdata(data^).value);
          log(#13#10'///'#13#10);
        end;
+       if tdata(data^).cmd=cmd_GETTHRINFOS then
+       begin
+         log('received cmd GETTHRINFOS');
+         log('Target processname: '+tdata(data^).value);
+         tdata(data^).threadinfos:=getthreads(tdata(data^).value);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_RESUMEPROCESS then
+       begin
+         log('received cmd RESUMEPROCESS');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         tdata(data^).response:=resumeprocessfrompid(tdata(data^).pid);
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_SUSPENDPROCESS then
+       begin
+         log('received cmd SUSPENDPROCESS');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         tdata(data^).response:=suspendprocessfrompid(tdata(data^).pid);
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_TERMINATEPROCESS then
+       begin
+         log('received cmd TERMINATEPROCESS');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         log('Exitcode: '+tdata(data^).value);
+         tdata(data^).response:=terminateprocessfrompid(tdata(data^).pid,strtoint(tdata(data^).value));
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_RESUMETHREAD then
+       begin
+         log('received cmd RESUMETHREAD');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         tdata(data^).response:=resumethreadfromtid(tdata(data^).pid);
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_SUSPENDTHREAD then
+       begin
+         log('received cmd SUSPENDthread');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         tdata(data^).response:=suspendthreadfromtid(tdata(data^).pid);
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
+       if tdata(data^).cmd=cmd_TERMINATETHREAD then
+       begin
+         log('received cmd TERMINATETHREAD');
+         log('Target pid: '+inttostr(tdata(data^).pid));
+         log('Exitcode: '+tdata(data^).value);
+         tdata(data^).response:=terminatethreadfromtid(tdata(data^).pid,strtoint(tdata(data^).value));
+         log('Response: '+tdata(data^).response);
+         log(#13#10'///'#13#10);
+       end;
        //sysmsgbox(resp);   debug
        tdata(data^).cmd:=0;
     end;
   end;
-  log(#1310'Leaving DLL'#13#10);
+  log(#1310'leaving main'#13#10);
 end;
 
 procedure DllMain(dllparam: ptrint);register;
@@ -175,5 +232,6 @@ exports _main;
 begin
   dll_thread_attach_hook := @dllmain;
   _main;
+  log('exit DLL');
 end.
 
