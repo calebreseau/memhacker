@@ -150,6 +150,7 @@ begin
     log('suspend failed with error '+inttostr(lasterror)+', exiting');
     exit;
   end;
+  log('last error:'+inttostr(getlasterror));
   if SetThreadContext(hThread, ctx^)=false then
   begin
    log('SetThreadContext failed:'+inttostr(getlasterror)+', exiting');
@@ -167,6 +168,7 @@ begin
      exit;
    end
    else log('successfully resumed thread');
+   log('last error:'+inttostr(getlasterror));
    log('leaving injectctx');
   end;
 
