@@ -70,7 +70,7 @@
         <PackageName Value="LCL"/>
       </Item1>
     </RequiredPackages>
-    <Units Count="7">
+    <Units Count="11">
       <Unit0>
         <Filename Value="memhacker.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -105,6 +105,31 @@
         <Filename Value="uprocess.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit6>
+      <Unit7>
+        <Filename Value="ufrmproc.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmprocthr"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="ufrmlog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmlog_"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="ufrmmem.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmmem"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="utils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
