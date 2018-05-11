@@ -5,7 +5,7 @@ MemHacker is a memory editing tool.
 
 ## What can you do with memhacker?
 
-With memhacker, you can search, read or write any process' memory, if the process injected the DLL in (LSASS by default) owns a handle with the right access on the process you wanna act on. That means that if you dont touch anything, you will be able to write and read almost all processes mem, even most games and programs protected by anticheats and antiviruses.
+With memhacker, you can search, read or write any process' memory, and even inject DLLs if the process injected the DLL in (LSASS by default) owns a handle with the right access on the process you wanna act on. That means that if you dont touch anything, you will be able to write and read almost all processes mem, even most games and programs protected by anticheats and antiviruses.
 
 ## How does it work?
 
@@ -14,7 +14,7 @@ Before trying to open the target process from the process you're injected in, it
 
 # Documentation
 
-## Injection
+## Memhacker DLL Injection
 
 If you wanna inject into LSASS, you have nothing do to: just launch the program as an administrator and here you go.
 If you wanna inject into another process, just pass the name of the process you want to inject in as a command line parameter when you launch the program. If the process is elevated you will have to launch memhacker with admin rights too.
@@ -58,6 +58,16 @@ Finally, just click the "write" button. If there is no error, "ok" will be displ
  If you click an address, it will read the value.
  To wipe the addresses, double click the listbox.
  
+ ## Injecting DLL in remote processes from memhacker
+ 
+ This will inject the DLL you want into the process you want, from the process memhacker dll is injected in.
+ To do so, memhacker uses thread hijacking: instead of creating a new remote thread, it will tell one existing thread to load the DLL you want.
+ So to inject, just input the DLL path or open the file by clicking the '...' button, then click inject.
+ 
+ ## Process infos
+ 
+ By clicking "Get Infos", you will get process infos from the process you chose in the upper left corner.
+ 
  ## Logging
  
  Everything that the DLL does will be logged in the "log" text box.
@@ -86,4 +96,4 @@ Finally, just click the "write" button. If there is no error, "ok" will be displ
 Have fun!
 
 Here's what memhacker looks like:
-![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-6.png)
+![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-7.png)
