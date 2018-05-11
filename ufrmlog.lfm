@@ -1,0 +1,68 @@
+object frmlog_: Tfrmlog_
+  Left = 277
+  Height = 314
+  Top = 250
+  Width = 628
+  Caption = 'memhacker v0.8 - log'
+  ClientHeight = 314
+  ClientWidth = 628
+  OnCreate = FormCreate
+  LCLVersion = '1.8.2.0'
+  object grplog: TGroupBox
+    Left = 0
+    Height = 304
+    Top = 0
+    Width = 617
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'DLL Log'
+    ClientHeight = 284
+    ClientWidth = 613
+    TabOrder = 0
+    object mmlog: TMemo
+      Left = 8
+      Height = 219
+      Top = 7
+      Width = 592
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
+    end
+    object btnsavelog: TButton
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideRight.Control = btnclearlog
+      AnchorSideRight.Side = asrCenter
+      Left = 8
+      Height = 24
+      Top = 255
+      Width = 288
+      Anchors = [akLeft, akBottom]
+      Caption = 'Save log'
+      OnClick = btnsavelogClick
+      TabOrder = 1
+    end
+    object btnclearlog: TButton
+      AnchorSideLeft.Side = asrCenter
+      AnchorSideRight.Side = asrCenter
+      Left = 313
+      Height = 24
+      Top = 255
+      Width = 287
+      Anchors = [akRight, akBottom]
+      Caption = 'Clear'
+      OnClick = btnclearlogClick
+      TabOrder = 2
+    end
+    object chkbottom: TCheckBox
+      Left = 8
+      Height = 19
+      Top = 234
+      Width = 168
+      Anchors = [akLeft, akBottom]
+      Caption = 'Automatically go to bottom'
+      Checked = True
+      State = cbChecked
+      TabOrder = 3
+    end
+  end
+end
