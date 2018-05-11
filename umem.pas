@@ -5,7 +5,7 @@ unit umem;
 interface
 
 uses
-  Classes, SysUtils,utalkiewalkie,ntdll,windows,jwapsapi,strutils,wininjection,winmiscutils,uprocess;
+  Classes, SysUtils,utalkiewalkie,windows,strutils,winmiscutils,uprocess;
 
 
 const
@@ -20,7 +20,7 @@ var
   function researchmem(pid:dword;value:string;valuetype:dword;vlength:dword):string;
   function readmem(pid:dword;addr:qword;valuetype:dword;vlength:ptruint):string;
   function writemem(pid:dword;addr:qword;valuetype:dword;value:fixedstring;vlength:ptruint):string;
-  function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
+  function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:ptruint;startaddr:qword;endaddr:qword;advsearch:boolean):string;
 
 implementation
 
@@ -38,10 +38,8 @@ var
   readvalue:string;
 begin
   log('Enter researchmem');
-  fillchar(readvalue,sizeof(fixedstring),0);
-  fillchar(buf,sizeof(fixedstring),0);
   alreadyopened:=true;
-  target:=getsysprocesshandle(pid);
+  target:=getsysprocesshandle(pid,process_vm_read or process_vm_operation);
   if target<1 then
   begin
      log('didnt find handle, opening process');
@@ -79,7 +77,7 @@ begin
             if valuetype=vt_dword then readvalue:=inttostr(dword((@buf)^));
             if valuetype=vt_qword then readvalue:=inttostr(qword((@buf)^));
             if valuetype=vt_float then readvalue:=floattostr(single((@buf)^));
-            if valuetype=vt_string then readvalue:=string((@buf)^);
+            if valuetype=vt_string then setstring(result,pchar(@buf),vlength);;
             if valuetype=vt_bytearray then
             begin
               readvalue:=value;
@@ -103,7 +101,7 @@ begin
   if not alreadyopened then closehandle(target);
   log('leaving researchmem');
 end;
-function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:dword;startaddr:qword;endaddr:qword;advsearch:boolean):string;
+function searchmem(pid:dword;value:fixedstring;valuetype:dword;vlength:ptruint;startaddr:qword;endaddr:qword;advsearch:boolean):string;
 var
   target:thandle;
   MemInfo: MEMORY_BASIC_INFORMATION;
@@ -119,13 +117,12 @@ var
   meminfos:array of memory_basic_information;
   alreadyopened:boolean;
 begin
-    fillchar(readvalue,sizeof(fixedstring),0);
     fillchar(buf,sizeof(fixedstring),0);
     alreadyopened:=true;
     setlength(meminfos,0);
     errcount:=0;
     log('enter searchmem');
-    target:=getsysprocesshandle(pid);
+    target:=getsysprocesshandle(pid,process_vm_read or process_vm_operation or process_query_information);
     if target<1 then
     begin
        log('didnt find handle with getsysprocesshandle, opening process');
@@ -187,7 +184,7 @@ begin
                if valuetype=vt_dword then readvalue:=inttostr(dword((@buf)^));
                if valuetype=vt_qword then readvalue:=inttostr(qword((@buf)^));
                if valuetype=vt_float then readvalue:=floattostr(single((@buf)^));
-               if valuetype=vt_string then readvalue:=string((@buf)^);
+               if valuetype=vt_string then setstring(readvalue,pchar(@buf),bytesread);
                if valuetype=vt_bytearray then
                begin
                  readvalue:=value;
@@ -197,7 +194,7 @@ begin
                begin
                    tmp:=inttohex(qword(meminfos[j].baseaddress)+i,16);
                    while tmp[1]='0' do delete(tmp,1,1);
-                   log('found at 0x'+tmp);
+                   log('found at $'+tmp);
                    tdata(data^).searchdata.addrcount+=1;
                    addsaddr(tmp);
                end;
@@ -224,10 +221,10 @@ var
   i:integer;
 begin
   result:='';
-  fillchar(buf,sizeof(fixedstring),0);
+  fillchar(buf,255,0);
   alreadyopened:=true;
   log('Enter readmem');
-  target:=getsysprocesshandle(pid);
+  target:=getsysprocesshandle(pid,process_vm_read or process_vm_operation);
   if target<1 then
   begin
      log('didnt find handle with getsysprocesshandle, opening process');
@@ -264,7 +261,7 @@ begin
          if valuetype=vt_dword then result:=inttostr(dword((@buf)^));
          if valuetype=vt_qword then result:=inttostr(qword((@buf)^));
          if valuetype=vt_float then result:=floattostr(single((@buf)^));
-         if valuetype=vt_string then result:=string((@buf)^);
+         if valuetype=vt_string then setstring(result,pchar(@buf),vlength);//copymemory(@result,@buf,bytesread);//result:=string((@buf)^);
          log('result: '+result);
     end
     else log('error rpm: '+inttostr(getlasterror));
@@ -281,13 +278,14 @@ var
   target:thandle;
   alreadyopened:boolean;
   tmpstr:string;
+  floatvalue:single;
 begin
   //log(tmpstr);
   //log(value);
   fillchar(buf,sizeof(fixedstring),0);
   alreadyopened:=true;
   log('Enter writemem');
-  target:=getsysprocesshandle(pid);
+  target:=getsysprocesshandle(pid,process_vm_write or process_vm_operation);
   if target<1 then
   begin
      log('didnt find handle with getsysprocesshandle, opening process');
@@ -305,8 +303,17 @@ begin
   log('handle ok');
   if valuetype=vt_dword then move(strtoint(value),buf,vlength);
   if valuetype=vt_qword then move(strtoint64(value),buf,vlength);
-  if valuetype=vt_float then move(strtoint(value),buf,vlength);
-  if valuetype=vt_string then move(value,buf,vlength);
+  if valuetype=vt_float then
+  begin
+       floatvalue:=strtofloat(value);
+       move(floatvalue,buf,vlength);
+  end;
+  if valuetype=vt_string then
+  begin
+    tmpstr:=string(value);
+    copymemory(@buf,@tmpstr[1],vlength);
+    setstring(tmpstr,pchar(@buf),vlength);
+  end;
   if valuetype=vt_bytearray then
   begin
     for i:=1 to tdata(data^).valuelength do
