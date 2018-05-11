@@ -96,4 +96,7 @@ Finally, just click the "write" button. If there is no error, "ok" will be displ
 Have fun!
 
 Here's what memhacker looks like:
-![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-7.png)
+![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-8_main.png)
+![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-8_memory.png)
+![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-8_process.png)
+![screenshot](https://caldevelopment.files.wordpress.com/2018/05/memhacker_0-8_log.png)
