@@ -86,8 +86,8 @@ const
 
   function ntquerysysteminformation(systeminformationclass:system_information_class;systeminformation:pvoid;systeminformationlength:ulong;returnlength:pulong): ntstatus; stdcall;external 'ntdll.dll' name 'NtQuerySystemInformation';
   function ntqueryobject(ObjectHandle:cardinal; ObjectInformationClass:OBJECT_INFORMATION_CLASS; ObjectInformation:pointer; Length:ULONG;ResultLength:PDWORD):ntstatus; stdcall;external 'ntdll.dll' name 'NtQueryObject';
-  function ntsuspendprocess(ProcessHandle: THANDLE):boolean; stdcall;external 'ntdll.dll' name 'NtSuspendProcess';
-  function NtResumeProcess(ProcessHandle: THANDLE):boolean; stdcall;external 'ntdll.dll' name 'NtResumeProcess';
+  function ntsuspendprocess(ProcessHandle: THANDLE):ntstatus; stdcall;external 'ntdll.dll' name 'NtSuspendProcess';
+  function NtResumeProcess(ProcessHandle: THANDLE):ntstatus; stdcall;external 'ntdll.dll' name 'NtResumeProcess';
   function rtlcreateuserthread(ProcessHandle: THANDLE;
      SecurityDescriptor: PSECURITY_DESCRIPTOR;
      CreateSuspended: Boolean;
@@ -98,6 +98,7 @@ const
      ThreadHandle: PHANDLE;
      ClientID: PCLIENT_ID):ntstatus; stdcall;external 'ntdll.dll' name 'RtlCreateUserThread';
   function GetProcessId(Process: THandle): DWORD; stdcall; external 'kernel32.dll' name 'GetProcessId';
+  function GetThreadId(Thread: THandle): DWORD; stdcall; external 'kernel32.dll' name 'GetThreadId';
   function GetObjectInfo(hObject:cardinal; objInfoClass:OBJECT_INFORMATION_CLASS):string;
 
 implementation
