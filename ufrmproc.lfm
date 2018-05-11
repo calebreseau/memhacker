@@ -1,0 +1,292 @@
+object frmprocthr: Tfrmprocthr
+  Left = 333
+  Height = 340
+  Top = 228
+  Width = 886
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsToolWindow
+  Caption = 'memhacker v0.8 - process and thread utils'
+  ClientHeight = 340
+  ClientWidth = 886
+  OnCreate = FormCreate
+  LCLVersion = '1.8.2.0'
+  object grpinjection: TGroupBox
+    Left = 8
+    Height = 88
+    Top = 240
+    Width = 849
+    Caption = 'Injection using thread hijacking'
+    ClientHeight = 68
+    ClientWidth = 845
+    TabOrder = 0
+    object txtPath: TLabeledEdit
+      Left = 8
+      Height = 23
+      Top = 16
+      Width = 752
+      EditLabel.AnchorSideLeft.Control = txtPath
+      EditLabel.AnchorSideRight.Control = txtPath
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtPath
+      EditLabel.Left = 8
+      EditLabel.Height = 15
+      EditLabel.Top = -2
+      EditLabel.Width = 752
+      EditLabel.Caption = 'DLL Path'
+      EditLabel.ParentColor = False
+      TabOrder = 0
+    end
+    object btnbrowse: TButton
+      Left = 780
+      Height = 23
+      Top = 16
+      Width = 59
+      Caption = '...'
+      OnClick = btnbrowseClick
+      TabOrder = 1
+    end
+    object btninject: TButton
+      Left = 8
+      Height = 23
+      Top = 40
+      Width = 831
+      Caption = 'Inject!'
+      OnClick = btninjectClick
+      TabOrder = 2
+    end
+  end
+  object grpthreadutils: TGroupBox
+    Left = 8
+    Height = 176
+    Top = 48
+    Width = 360
+    Caption = 'Thread utils'
+    ClientHeight = 156
+    ClientWidth = 356
+    TabOrder = 1
+    object cmbtid: TComboBox
+      Left = 8
+      Height = 23
+      Top = 24
+      Width = 80
+      ItemHeight = 15
+      OnChange = cmbtidChange
+      Style = csDropDownList
+      TabOrder = 0
+    end
+    object lbltid: TLabel
+      Left = 8
+      Height = 15
+      Top = 5
+      Width = 51
+      Caption = 'Thread ID'
+      ParentColor = False
+    end
+    object txtthrhandle: TLabeledEdit
+      Left = 104
+      Height = 23
+      Top = 24
+      Width = 104
+      EditLabel.AnchorSideLeft.Control = txtthrhandle
+      EditLabel.AnchorSideRight.Control = txtthrhandle
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtthrhandle
+      EditLabel.Left = 104
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 104
+      EditLabel.Caption = 'Handle to thread'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 1
+    end
+    object btnthrinfos: TButton
+      Left = 8
+      Height = 25
+      Top = 56
+      Width = 336
+      Caption = 'Get infos'
+      OnClick = btnthrinfosClick
+      TabOrder = 2
+    end
+    object btnsuspthread: TButton
+      Left = 8
+      Height = 25
+      Top = 88
+      Width = 160
+      Caption = 'Suspend'
+      OnClick = btnsuspthreadClick
+      TabOrder = 3
+    end
+    object btnresumethread: TButton
+      Left = 184
+      Height = 25
+      Top = 88
+      Width = 160
+      Caption = 'Resume'
+      OnClick = btnresumethreadClick
+      TabOrder = 4
+    end
+    object btntermthread: TButton
+      Left = 8
+      Height = 25
+      Top = 120
+      Width = 336
+      Caption = 'Terminate'
+      OnClick = btntermthreadClick
+      TabOrder = 5
+    end
+    object btngethandle: TButton
+      Left = 221
+      Height = 25
+      Top = 24
+      Width = 123
+      Caption = 'Get handle'
+      OnClick = btngethandleClick
+      TabOrder = 6
+    end
+  end
+  object grpprocinfos: TGroupBox
+    Left = 384
+    Height = 176
+    Top = 48
+    Width = 473
+    Caption = 'Process utils'
+    ClientHeight = 156
+    ClientWidth = 469
+    TabOrder = 2
+    object txthandle: TLabeledEdit
+      Left = 200
+      Height = 23
+      Top = 24
+      Width = 72
+      EditLabel.AnchorSideLeft.Control = txthandle
+      EditLabel.AnchorSideRight.Control = txthandle
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txthandle
+      EditLabel.Left = 200
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 72
+      EditLabel.Caption = 'Handle'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 0
+    end
+    object txtbaseaddr: TLabeledEdit
+      Left = 280
+      Height = 23
+      Top = 24
+      Width = 184
+      EditLabel.AnchorSideLeft.Control = txtbaseaddr
+      EditLabel.AnchorSideRight.Control = txtbaseaddr
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtbaseaddr
+      EditLabel.Left = 280
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 184
+      EditLabel.Caption = 'Base address'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 1
+    end
+    object txtPID: TLabeledEdit
+      Left = 8
+      Height = 23
+      Top = 24
+      Width = 72
+      EditLabel.AnchorSideLeft.Control = txtPID
+      EditLabel.AnchorSideRight.Control = txtPID
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtPID
+      EditLabel.Left = 8
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 72
+      EditLabel.Caption = 'Process ID'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 2
+    end
+    object txtmaintid: TLabeledEdit
+      Left = 96
+      Height = 23
+      Top = 24
+      Width = 88
+      EditLabel.AnchorSideLeft.Control = txtmaintid
+      EditLabel.AnchorSideRight.Control = txtmaintid
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtmaintid
+      EditLabel.Left = 96
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 88
+      EditLabel.Caption = 'Main Thread ID'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 3
+    end
+    object btnrefreshinfos: TButton
+      Left = 8
+      Height = 26
+      Top = 56
+      Width = 455
+      Caption = 'Get infos'
+      OnClick = btnrefreshinfosClick
+      TabOrder = 4
+    end
+    object btnresume: TButton
+      Left = 241
+      Height = 25
+      Top = 88
+      Width = 222
+      Caption = 'Resume'
+      OnClick = btnresumeClick
+      TabOrder = 5
+    end
+    object btnsuspend: TButton
+      Left = 8
+      Height = 25
+      Top = 88
+      Width = 223
+      Caption = 'Suspend'
+      OnClick = btnsuspendClick
+      TabOrder = 6
+    end
+    object btnterminate: TButton
+      Left = 8
+      Height = 25
+      Top = 120
+      Width = 455
+      Caption = 'Terminate'
+      OnClick = btnterminateClick
+      TabOrder = 7
+    end
+  end
+  object lblpname: TLabel
+    Left = 8
+    Height = 15
+    Top = 12
+    Width = 73
+    Caption = 'Process name'
+    ParentColor = False
+  end
+  object txtprocess: TComboBox
+    Left = 88
+    Height = 23
+    Top = 8
+    Width = 192
+    ItemHeight = 15
+    TabOrder = 3
+  end
+  object btnrefresh: TButton
+    Left = 288
+    Height = 24
+    Top = 8
+    Width = 80
+    Caption = 'Refresh'
+    OnClick = btnrefreshClick
+    TabOrder = 4
+  end
+end
