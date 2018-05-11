@@ -1,0 +1,385 @@
+object frmmem: Tfrmmem
+  Left = 499
+  Height = 391
+  Top = 135
+  Width = 633
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsToolWindow
+  Caption = 'memhacker v0.8 - memory utils'
+  ClientHeight = 391
+  ClientWidth = 633
+  OnCreate = FormCreate
+  LCLVersion = '1.8.2.0'
+  object lblpname: TLabel
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 73
+    Caption = 'Process name'
+    ParentColor = False
+  end
+  object txtprocess: TComboBox
+    Left = 88
+    Height = 23
+    Top = 8
+    Width = 192
+    ItemHeight = 15
+    TabOrder = 0
+  end
+  object btnrefresh: TButton
+    Left = 288
+    Height = 24
+    Top = 7
+    Width = 112
+    Caption = 'Refresh'
+    OnClick = btnrefreshClick
+    TabOrder = 1
+  end
+  object grpmemutils: TGroupBox
+    Left = 8
+    Height = 328
+    Top = 32
+    Width = 280
+    Caption = 'Memory editing'
+    ClientHeight = 308
+    ClientWidth = 276
+    TabOrder = 2
+    object btnwrite: TButton
+      Left = 16
+      Height = 48
+      Top = 192
+      Width = 256
+      Caption = 'Write'
+      OnClick = btnwriteClick
+      TabOrder = 0
+    end
+    object btnread: TButton
+      Left = 16
+      Height = 48
+      Top = 248
+      Width = 256
+      Caption = 'Read'
+      OnClick = btnreadClick
+      TabOrder = 1
+    end
+    object txtaddr: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 24
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtaddr
+      EditLabel.AnchorSideRight.Control = txtaddr
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtaddr
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 6
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Address'
+      EditLabel.ParentColor = False
+      TabOrder = 2
+      Text = '$'
+      OnChange = txtaddrChange
+    end
+    object txtvalue: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 80
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtvalue
+      EditLabel.AnchorSideRight.Control = txtvalue
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtvalue
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 62
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Value'
+      EditLabel.ParentColor = False
+      TabOrder = 3
+      OnChange = txtvalueChange
+    end
+    object grpvtype: TGroupBox
+      Left = 168
+      Height = 177
+      Top = 8
+      Width = 104
+      Caption = 'Value type'
+      ClientHeight = 157
+      ClientWidth = 100
+      TabOrder = 4
+      object rbdword: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 10
+        Width = 63
+        Caption = 'DWORD'
+        Checked = True
+        TabOrder = 3
+        TabStop = True
+      end
+      object rbqword: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 32
+        Width = 64
+        Caption = 'QWORD'
+        TabOrder = 0
+      end
+      object rbfloat: TRadioButton
+        Left = 16
+        Height = 19
+        Top = 56
+        Width = 52
+        Caption = 'Single'
+        TabOrder = 1
+      end
+      object rbstring: TRadioButton
+        Left = 17
+        Height = 19
+        Top = 80
+        Width = 51
+        Caption = 'String'
+        TabOrder = 2
+      end
+      object txtlength: TEdit
+        Left = 64
+        Height = 23
+        Top = 128
+        Width = 31
+        NumbersOnly = True
+        OnChange = txtlengthChange
+        TabOrder = 4
+        Text = '1'
+      end
+      object lbllength: TLabel
+        Left = 16
+        Height = 15
+        Top = 133
+        Width = 37
+        Caption = 'Length'
+        ParentColor = False
+      end
+      object rbarray: TRadioButton
+        Left = 17
+        Height = 19
+        Top = 104
+        Width = 72
+        Caption = 'Byte array'
+        TabOrder = 5
+      end
+    end
+    object txtresp: TLabeledEdit
+      Left = 16
+      Height = 23
+      Top = 138
+      Width = 136
+      EditLabel.AnchorSideLeft.Control = txtresp
+      EditLabel.AnchorSideRight.Control = txtresp
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtresp
+      EditLabel.Left = 16
+      EditLabel.Height = 15
+      EditLabel.Top = 120
+      EditLabel.Width = 136
+      EditLabel.Caption = 'Response'
+      EditLabel.ParentColor = False
+      ReadOnly = True
+      TabOrder = 5
+    end
+  end
+  object grpsearch: TGroupBox
+    Left = 296
+    Height = 352
+    Top = 32
+    Width = 329
+    Caption = 'Search memory'
+    ClientHeight = 332
+    ClientWidth = 325
+    TabOrder = 3
+    object btnsearch: TButton
+      Left = 8
+      Height = 25
+      Top = 304
+      Width = 96
+      Caption = 'New search'
+      OnClick = btnsearchClick
+      TabOrder = 0
+    end
+    object grpsvtype: TGroupBox
+      Left = 216
+      Height = 161
+      Top = 0
+      Width = 96
+      Caption = 'Value type'
+      ClientHeight = 141
+      ClientWidth = 92
+      TabOrder = 1
+      object rbsdword: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 0
+        Width = 63
+        Caption = 'DWORD'
+        Checked = True
+        TabOrder = 3
+        TabStop = True
+      end
+      object rbsqword: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 24
+        Width = 64
+        Caption = 'QWORD'
+        TabOrder = 0
+      end
+      object rbsfloat: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 48
+        Width = 52
+        Caption = 'Single'
+        TabOrder = 1
+      end
+      object rbsstring: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 72
+        Width = 51
+        Caption = 'String'
+        TabOrder = 2
+      end
+      object rbsarray: TRadioButton
+        Left = 8
+        Height = 19
+        Top = 96
+        Width = 72
+        Caption = 'Byte array'
+        TabOrder = 5
+      end
+      object lblslength: TLabel
+        Left = 8
+        Height = 15
+        Top = 120
+        Width = 37
+        Caption = 'Length'
+        ParentColor = False
+      end
+      object txtslength: TEdit
+        Left = 56
+        Height = 23
+        Top = 112
+        Width = 31
+        NumbersOnly = True
+        TabOrder = 4
+        Text = '1'
+      end
+    end
+    object txtsstart: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 224
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsstart
+      EditLabel.AnchorSideRight.Control = txtsstart
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsstart
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 206
+      EditLabel.Width = 96
+      EditLabel.Caption = 'Start address'
+      EditLabel.ParentColor = False
+      TabOrder = 2
+      Text = '$0'
+    end
+    object txtsend: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 266
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsend
+      EditLabel.AnchorSideRight.Control = txtsend
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsend
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 248
+      EditLabel.Width = 96
+      EditLabel.Caption = 'End address'
+      EditLabel.ParentColor = False
+      TabOrder = 3
+      Text = '$0'
+    end
+    object lstaddrs: TListBox
+      Left = 8
+      Height = 249
+      Top = 2
+      Width = 200
+      ItemHeight = 0
+      OnClick = lstaddrsClick
+      OnDblClick = lstaddrsDblClick
+      TabOrder = 4
+    end
+    object txtsvalue: TLabeledEdit
+      Left = 216
+      Height = 23
+      Top = 184
+      Width = 96
+      EditLabel.AnchorSideLeft.Control = txtsvalue
+      EditLabel.AnchorSideRight.Control = txtsvalue
+      EditLabel.AnchorSideRight.Side = asrBottom
+      EditLabel.AnchorSideBottom.Control = txtsvalue
+      EditLabel.Left = 216
+      EditLabel.Height = 15
+      EditLabel.Top = 166
+      EditLabel.Width = 96
+      EditLabel.Caption = 'Value'
+      EditLabel.ParentColor = False
+      TabOrder = 5
+    end
+    object chkadvsearch: TCheckBox
+      Left = 216
+      Height = 19
+      Top = 304
+      Width = 110
+      Caption = 'Advanced search'
+      TabOrder = 6
+    end
+    object btnresearch: TButton
+      Left = 112
+      Height = 25
+      Top = 304
+      Width = 96
+      Caption = 'Search in values'
+      OnClick = btnresearchClick
+      TabOrder = 7
+    end
+    object pgbsearch: TProgressBar
+      Left = 8
+      Height = 23
+      Top = 272
+      Width = 136
+      Smooth = True
+      TabOrder = 8
+      BarShowText = True
+    end
+    object lbladdrcount: TLabel
+      Left = 8
+      Height = 15
+      Top = 256
+      Width = 97
+      Caption = 'Found 0 addresses'
+      ParentColor = False
+    end
+    object btnstopsearch: TButton
+      Left = 149
+      Height = 25
+      Top = 270
+      Width = 59
+      Caption = 'Stop'
+      OnClick = btnstopsearchClick
+      TabOrder = 9
+    end
+  end
+end
