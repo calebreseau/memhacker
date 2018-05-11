@@ -10,6 +10,7 @@ uses
 type
 
     fixedstring=string[255];
+    fixedarray=array[0..254] of byte;
 
     tretaddrs=array[0..1023] of string[18];
     tsearchdata=record
@@ -38,6 +39,13 @@ type
       syshandle:thandle;
     end;
 
+    tthreadinfo=record
+      tid:dword;
+      handle:thandle;
+    end;
+
+    tthreadinfos=array[0..1023] of tthreadinfo;
+
     tdata=record
       cmd:dword;
       pid:dword;
@@ -49,6 +57,8 @@ type
       _log:tlog;
       searchdata:tsearchdata;
       processinfos:tprocessinfo;
+      threadinfos:tthreadinfos;
+      thrlastmodified:integer;
     end;
 
 
@@ -64,6 +74,13 @@ const
   cmd_GETBASEADDR=6;
   cmd_INJECT=7;
   cmd_GETINFOS=8;
+  cmd_RESUMEPROCESS=9;
+  cmd_SUSPENDPROCESS=10;
+  cmd_TERMINATEPROCESS=11;
+  cmd_GETTHRINFOS=12;
+  cmd_RESUMETHREAD=13;
+  cmd_SUSPENDTHREAD=14;
+  cmd_TERMINATETHREAD=15;
 
 var
   fh:thandle;
@@ -105,6 +122,8 @@ begin
 end;
 
 function tw_init_srv:boolean;
+var
+  i:integer;
 begin
      result:=false;
      setprivilege('SeCreateGlobalPrivilege',true);
@@ -116,7 +135,8 @@ begin
      tdata(data^).response:='';
      tdata(data^).cmd:=0;
      fillchar(tdata(data^)._log.strings,sizeof(tdata(data^)._log.strings),0);
-     fillchar(tdata(data^).processinfos,sizeof(tprocessinfo),0);
+     fillbyte(tdata(data^).processinfos,sizeof(tprocessinfo),0);
+     tdata(data^).thrlastmodified:=0;
      log('init log');
      tdata(data^)._log.index:=0;
      tdata(data^).searchdata.index:=0;
